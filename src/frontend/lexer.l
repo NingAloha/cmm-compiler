@@ -81,3 +81,5 @@ FLOAT {DIGIT}+\.{DIGIT}+
         "Error type A at Line %d: Mysterious character \"%s\".\n",
         yylineno, yytext);
 }
+
+%%
