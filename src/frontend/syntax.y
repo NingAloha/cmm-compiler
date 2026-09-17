@@ -19,6 +19,7 @@ void yyerror(const char *message);
 %left PLUS MINUS
 %left STAR DIV
 %right NOT UMINUS
+%left LP RP LB RB DOT
 
 %start Program
 
@@ -42,6 +43,15 @@ Exp:
     | Exp AND Exp
     | Exp OR Exp
     | Exp ASSIGNOP Exp
+    | ID LP RP
+    | ID LP Args RP
+    | Exp LB Exp RB
+    | Exp DOT ID
+    ;
+
+Args:
+    Exp COMMA Args
+    | Exp
     ;
 %%
 

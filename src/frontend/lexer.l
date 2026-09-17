@@ -55,11 +55,11 @@ FLOAT {DIGIT}+\.{DIGIT}+
 "||" { return OR; }
 
 ";" { printf("SEMI\n"); }
-"," { printf("COMMA\n"); }
+"," { return COMMA; }
 "(" { return LP; }
 ")" { return RP; }
-"[" { printf("LB\n"); }
-"]" { printf("RB\n"); }
+"[" { return LB; }
+"]" { return RB; }
 "{" { printf("LC\n"); }
 "}" { printf("RC\n"); }
 "=" { return ASSIGNOP; }
@@ -67,7 +67,7 @@ FLOAT {DIGIT}+\.{DIGIT}+
 "-" { return MINUS; }
 "*" { return STAR; }
 "/" { return DIV; }
-"." { printf("DOT\n"); }
+"." { return DOT; }
 "!" { return NOT; }
 
 ">"  { return RELOP; }
