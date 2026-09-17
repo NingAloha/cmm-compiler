@@ -1,3 +1,6 @@
-{
-    struct Point point;
+int main() {
+    {
+        struct Point point;
+    }
+
 }

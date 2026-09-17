@@ -1,9 +1,12 @@
-{
-    struct Point {
-        int x;
-        int y;
-    } point;
-    struct {
-        float value;
-    } item;
+int main() {
+    {
+        struct Point {
+            int x;
+            int y;
+        } point;
+        struct {
+            float value;
+        } item;
+    }
+
 }

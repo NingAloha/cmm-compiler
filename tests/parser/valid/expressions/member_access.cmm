@@ -1,1 +1,3 @@
-points[i].x;
+int main() {
+    points[i].x;
+}

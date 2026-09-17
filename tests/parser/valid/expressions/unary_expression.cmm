@@ -1,1 +1,3 @@
--42 * !value;
+int main() {
+    -42 * !value;
+}

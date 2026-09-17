@@ -1,5 +1,8 @@
-{
-    int answer;
-    float ratio;
-    return answer;
+int main() {
+    {
+        int answer;
+        float ratio;
+        return answer;
+    }
+
 }

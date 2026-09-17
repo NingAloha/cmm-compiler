@@ -1,1 +1,4 @@
-return answer;
+int main() {
+    return answer;
+
+}

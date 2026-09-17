@@ -1,5 +1,8 @@
-{
-    int x = 1, y;
-    float ratio = 3.14;
-    return x + y;
+int main() {
+    {
+        int x = 1, y;
+        float ratio = 3.14;
+        return x + y;
+    }
+
 }

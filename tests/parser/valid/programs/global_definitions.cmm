@@ -1,0 +1,10 @@
+int count, values[10];
+
+struct Point {
+    int x;
+    int y;
+};
+
+int main() {
+    return count;
+}

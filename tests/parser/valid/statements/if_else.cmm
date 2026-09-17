@@ -1,5 +1,8 @@
-if (ready) {
-    return result;
-} else {
-    return fallback;
+int main() {
+    if (ready) {
+        return result;
+    } else {
+        return fallback;
+    }
+
 }

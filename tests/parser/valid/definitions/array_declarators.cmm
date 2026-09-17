@@ -1,5 +1,8 @@
-{
-    int values[10];
-    float matrix[3][4];
-    return values[0];
+int main() {
+    {
+        int values[10];
+        float matrix[3][4];
+        return values[0];
+    }
+
 }

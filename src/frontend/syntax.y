@@ -28,7 +28,37 @@ void yyerror(const char *message);
 
 %%
 Program:
-    Stmt
+    ExtDefList
+    ;
+
+ExtDefList:
+    ExtDef ExtDefList
+    | /* empty */
+    ;
+
+ExtDef:
+    Specifier ExtDecList SEMI
+    | Specifier SEMI
+    | Specifier FunDec CompSt
+    ;
+
+ExtDecList:
+    VarDec
+    | VarDec COMMA ExtDecList
+    ;
+
+FunDec:
+    ID LP VarList RP
+    | ID LP RP
+    ;
+
+VarList:
+    ParamDec COMMA VarList
+    | ParamDec
+    ;
+
+ParamDec:
+    Specifier VarDec
     ;
 
 Stmt:

@@ -1,1 +1,3 @@
-values[i + 1];
+int main() {
+    values[i + 1];
+}
