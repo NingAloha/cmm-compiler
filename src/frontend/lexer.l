@@ -13,14 +13,14 @@ FLOAT {DIGIT}+\.{DIGIT}+
 
 %%
 
-"int" { printf("TYPE: %s\n", yytext); }
-"float" { printf("TYPE: %s\n", yytext); }
+"int"   { return TYPE; }
+"float" { return TYPE; }
 
-"struct" { printf("STRUCT\n"); }
-"return" { printf("RETURN\n"); }
-"if" { printf("IF\n"); }
-"else" { printf("ELSE\n"); }
-"while" { printf("WHILE\n"); }
+"struct" { return STRUCT; }
+"return" { return RETURN; }
+"if" { return IF; }
+"else" { return ELSE; }
+"while" { return WHILE; }
 
 [ \t\r]+ { /* 忽略空格、Tab 和回车。 */ }
 \n { /* yylineno 会自动把行号加一。 */ }
@@ -54,14 +54,14 @@ FLOAT {DIGIT}+\.{DIGIT}+
 "&&" { return AND; }
 "||" { return OR; }
 
-";" { printf("SEMI\n"); }
+";" { return SEMI; }
 "," { return COMMA; }
 "(" { return LP; }
 ")" { return RP; }
 "[" { return LB; }
 "]" { return RB; }
-"{" { printf("LC\n"); }
-"}" { printf("RC\n"); }
+"{" { return LC; }
+"}" { return RC; }
 "=" { return ASSIGNOP; }
 "+" { return PLUS; }
 "-" { return MINUS; }

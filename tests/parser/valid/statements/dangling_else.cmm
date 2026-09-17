@@ -1,0 +1,5 @@
+if (rain)
+    if (umbrella)
+        go_out;
+    else
+        stay_home;

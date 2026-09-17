@@ -1,0 +1,5 @@
+if (ready) {
+    return result;
+} else {
+    return fallback;
+}

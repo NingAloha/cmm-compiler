@@ -21,11 +21,71 @@ void yyerror(const char *message);
 %right NOT UMINUS
 %left LP RP LB RB DOT
 
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
+
 %start Program
 
 %%
 Program:
-    Exp
+    Stmt
+    ;
+
+Stmt:
+    Exp SEMI
+    | RETURN Exp SEMI
+    | CompSt
+    | WHILE LP Exp RP Stmt
+    | IF LP Exp RP Stmt %prec LOWER_THAN_ELSE
+    | IF LP Exp RP Stmt ELSE Stmt
+    ;
+
+CompSt:
+    LC DefList StmtList RC
+    ;
+
+StmtList:
+    Stmt StmtList
+    | /* empty */
+    ;
+
+DefList:
+    Def DefList
+    | /* empty */
+    ;
+
+Def:
+    Specifier DecList SEMI
+    ;
+
+DecList:
+    Dec
+    | Dec COMMA DecList
+    ;
+
+Dec:
+    VarDec
+    | VarDec ASSIGNOP Exp
+    ;
+
+VarDec:
+    ID
+    | VarDec LB INT RB
+    ;
+
+Specifier:
+    TYPE
+    | STRUCT OptTag LC DefList RC
+    | STRUCT Tag
+    ;
+
+Tag:
+    ID
+    ;
+
+OptTag:
+    ID
+    | /* empty */
     ;
 
 Exp:
