@@ -46,32 +46,32 @@ FLOAT {DIGIT}+\.{DIGIT}+
     return 0;
 }
 
-">=" { printf("RELOP: %s\n", yytext); }
-"<=" { printf("RELOP: %s\n", yytext); }
-"==" { printf("RELOP: %s\n", yytext); }
-"!=" { printf("RELOP: %s\n", yytext); }
+">=" { return RELOP; }
+"<=" { return RELOP; }
+"==" { return RELOP; }
+"!=" { return RELOP; }
 
-"&&" { printf("AND\n"); }
-"||" { printf("OR\n"); }
+"&&" { return AND; }
+"||" { return OR; }
 
 ";" { printf("SEMI\n"); }
 "," { printf("COMMA\n"); }
-"(" { printf("LP\n"); }
-")" { printf("RP\n"); }
+"(" { return LP; }
+")" { return RP; }
 "[" { printf("LB\n"); }
 "]" { printf("RB\n"); }
 "{" { printf("LC\n"); }
 "}" { printf("RC\n"); }
-"=" { printf("ASSIGNOP\n"); }
+"=" { return ASSIGNOP; }
 "+" { return PLUS; }
 "-" { return MINUS; }
 "*" { return STAR; }
 "/" { return DIV; }
 "." { printf("DOT\n"); }
-"!" { printf("NOT\n"); }
+"!" { return NOT; }
 
-">" { printf("RELOP: %s\n", yytext); }
-"<" { printf("RELOP: %s\n", yytext); }
+">"  { return RELOP; }
+"<"  { return RELOP; }
 
 {FLOAT} { return FLOAT; }
 {DIGIT}+ { return INT; }
