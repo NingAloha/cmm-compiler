@@ -11,7 +11,8 @@ LEXER_SPEC := src/frontend/lexer.l
 LEXER_SOURCE := $(BUILD_DIR)/lexer.c
 DRIVER_SOURCE := src/driver/main.c
 TARGET := $(BUILD_DIR)/parser
-TEST_SOURCE := tests/parser/valid/assignment_expression.cmm
+VALID_TESTS := $(sort $(wildcard tests/parser/valid/*.cmm))
+INVALID_TESTS := $(sort $(wildcard tests/parser/invalid/*.cmm))
 
 .PHONY: all clean test
 
@@ -33,4 +34,17 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 test: $(TARGET)
-	./$(TARGET) $(TEST_SOURCE)
+	@for test in $(VALID_TESTS); do \
+		if ./$(TARGET) "$$test" >/dev/null; then \
+			echo "PASS $$test"; \
+		else \
+			echo "FAIL $$test"; exit 1; \
+		fi; \
+	done
+	@for test in $(INVALID_TESTS); do \
+		if ./$(TARGET) "$$test" >/dev/null 2>&1; then \
+			echo "FAIL (expected rejection) $$test"; exit 1; \
+		else \
+			echo "PASS (rejected) $$test"; \
+		fi; \
+	done
