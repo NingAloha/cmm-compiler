@@ -63,10 +63,10 @@ FLOAT {DIGIT}+\.{DIGIT}+
 "{" { printf("LC\n"); }
 "}" { printf("RC\n"); }
 "=" { printf("ASSIGNOP\n"); }
-"+" { printf("PLUS\n"); }
-"-" { printf("MINUS\n"); }
-"*" { printf("STAR\n"); }
-"/" { printf("DIV\n"); }
+"+" { return PLUS; }
+"-" { return MINUS; }
+"*" { return STAR; }
+"/" { return DIV; }
 "." { printf("DOT\n"); }
 "!" { printf("NOT\n"); }
 

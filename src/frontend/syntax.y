@@ -12,6 +12,9 @@ void yyerror(const char *message);
 %token LP RP LB RB LC RC
 %token STRUCT RETURN IF ELSE WHILE
 
+%left PLUS MINUS
+%left STAR DIV
+
 %start Program
 
 %%
@@ -20,7 +23,11 @@ Program:
     ;
 
 Exp:
-    ID
+    Exp PLUS Exp
+    | Exp MINUS Exp
+    | Exp STAR Exp
+    | Exp DIV Exp
+    | ID
     | INT
     | FLOAT
     ;

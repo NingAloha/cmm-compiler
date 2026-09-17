@@ -11,7 +11,7 @@ LEXER_SPEC := src/frontend/lexer.l
 LEXER_SOURCE := $(BUILD_DIR)/lexer.c
 DRIVER_SOURCE := src/driver/main.c
 TARGET := $(BUILD_DIR)/parser
-TEST_SOURCE := tests/parser/valid/int_literal.cmm
+TEST_SOURCE := tests/parser/valid/multiply_precedence.cmm
 
 .PHONY: all clean test
 
