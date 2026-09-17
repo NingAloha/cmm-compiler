@@ -11,8 +11,8 @@ LEXER_SPEC := src/frontend/lexer.l
 LEXER_SOURCE := $(BUILD_DIR)/lexer.c
 DRIVER_SOURCE := src/driver/main.c
 TARGET := $(BUILD_DIR)/parser
-VALID_TESTS := $(sort $(wildcard tests/parser/valid/*.cmm))
-INVALID_TESTS := $(sort $(wildcard tests/parser/invalid/*.cmm))
+VALID_TESTS := $(sort $(shell find tests/parser/valid -type f -name '*.cmm'))
+INVALID_TESTS := $(sort $(shell find tests/parser/invalid -type f -name '*.cmm'))
 
 .PHONY: all clean test
 
