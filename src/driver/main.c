@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include "tree.h"
 
 extern FILE *yyin;
+extern TreeNode *syntax_tree_root;
 int yyparse(void);
 
 int main(int argc, char *argv[]) {
@@ -15,8 +17,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    int parse_result = yyparse();
-
+    int result = yyparse();
     fclose(yyin);
-    return parse_result;
+    
+    if (result == 0 && syntax_tree_root != NULL) {
+        tree_print(syntax_tree_root, 0);
+    }
+
+    tree_free(syntax_tree_root);
+    return result;
 }

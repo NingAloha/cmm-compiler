@@ -4,7 +4,13 @@
 %{
 #include <stdio.h>
 #include "syntax.tab.h"
+#include "tree.h"
+
 static int comment_start_line;
+static int make_token(int token, const char *name, const char *text) {
+    yylval.node = tree_new(name, text, yylineno);
+    return token;
+}
 %}
 
 DIGIT [0-9]
@@ -13,14 +19,14 @@ FLOAT {DIGIT}+\.{DIGIT}+
 
 %%
 
-"int"   { return TYPE; }
-"float" { return TYPE; }
+"int"   { return make_token(TYPE, "TYPE", yytext); }
+"float" { return make_token(TYPE, "TYPE", yytext); }
 
-"struct" { return STRUCT; }
-"return" { return RETURN; }
-"if" { return IF; }
-"else" { return ELSE; }
-"while" { return WHILE; }
+"struct" { return make_token(STRUCT, "STRUCT", ""); }
+"return" { return make_token(RETURN, "RETURN", ""); }
+"if"     { return make_token(IF, "IF", ""); }
+"else"   { return make_token(ELSE, "ELSE", ""); }
+"while"  { return make_token(WHILE, "WHILE", ""); }
 
 [ \t\r]+ { /* 忽略空格、Tab 和回车。 */ }
 \n { /* yylineno 会自动把行号加一。 */ }
@@ -46,36 +52,36 @@ FLOAT {DIGIT}+\.{DIGIT}+
     return 0;
 }
 
-">=" { return RELOP; }
-"<=" { return RELOP; }
-"==" { return RELOP; }
-"!=" { return RELOP; }
+">=" { return make_token(RELOP, "RELOP", yytext); }
+"<=" { return make_token(RELOP, "RELOP", yytext); }
+"==" { return make_token(RELOP, "RELOP", yytext); }
+"!=" { return make_token(RELOP, "RELOP", yytext); }
 
-"&&" { return AND; }
-"||" { return OR; }
+"&&" { return make_token(AND, "AND", ""); }
+"||" { return make_token(OR, "OR", ""); }
 
-";" { return SEMI; }
-"," { return COMMA; }
-"(" { return LP; }
-")" { return RP; }
-"[" { return LB; }
-"]" { return RB; }
-"{" { return LC; }
-"}" { return RC; }
-"=" { return ASSIGNOP; }
-"+" { return PLUS; }
-"-" { return MINUS; }
-"*" { return STAR; }
-"/" { return DIV; }
-"." { return DOT; }
-"!" { return NOT; }
+";" { return make_token(SEMI, "SEMI", ""); }
+"," { return make_token(COMMA, "COMMA", ""); }
+"(" { return make_token(LP, "LP", ""); }
+")" { return make_token(RP, "RP", ""); }
+"[" { return make_token(LB, "LB", ""); }
+"]" { return make_token(RB, "RB", ""); }
+"{" { return make_token(LC, "LC", ""); }
+"}" { return make_token(RC, "RC", ""); }
+"=" { return make_token(ASSIGNOP, "ASSIGNOP", ""); }
+"+" { return make_token(PLUS, "PLUS", ""); }
+"-" { return make_token(MINUS, "MINUS", ""); }
+"*" { return make_token(STAR, "STAR", ""); }
+"/" { return make_token(DIV, "DIV", ""); }
+"." { return make_token(DOT, "DOT", ""); }
+"!" { return make_token(NOT, "NOT", ""); }
 
-">"  { return RELOP; }
-"<"  { return RELOP; }
+">"  { return make_token(RELOP, "RELOP", yytext); }
+"<"  { return make_token(RELOP, "RELOP", yytext); }
 
-{FLOAT} { return FLOAT; }
-{DIGIT}+ { return INT; }
-{ID} { return ID; }
+{FLOAT}  { return make_token(FLOAT, "FLOAT", yytext); }
+{DIGIT}+ { return make_token(INT, "INT", yytext); }
+{ID}     { return make_token(ID, "ID", yytext); }
 
 . {
     fprintf(stderr,

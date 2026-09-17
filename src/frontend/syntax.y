@@ -1,16 +1,22 @@
 %{
 #include <stdio.h>
+#include "tree.h"
 
 int yylex(void);
 extern int yylineno;
 void yyerror(const char *message);
+TreeNode *syntax_tree_root;
 %}
 
-%token INT FLOAT ID TYPE
-%token SEMI COMMA ASSIGNOP RELOP
-%token PLUS MINUS STAR DIV AND OR DOT NOT
-%token LP RP LB RB LC RC
-%token STRUCT RETURN IF ELSE WHILE
+%union {
+    TreeNode *node;
+}
+
+%token <node> INT FLOAT ID TYPE
+%token <node> SEMI COMMA ASSIGNOP RELOP
+%token <node> PLUS MINUS STAR DIV AND OR DOT NOT
+%token <node> LP RP LB RB LC RC
+%token <node> STRUCT RETURN IF ELSE WHILE
 
 %right ASSIGNOP
 %left OR
@@ -24,124 +30,384 @@ void yyerror(const char *message);
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 
+%type <node> Program ExtDefList ExtDef ExtDecList
+%type <node> FunDec VarList ParamDec
+%type <node> Stmt CompSt StmtList
+%type <node> DefList Def DecList Dec VarDec
+%type <node> Specifier Tag OptTag
+%type <node> Exp Args
+
 %start Program
 
 %%
 Program:
-    ExtDefList
+    ExtDefList {
+        $$ = tree_new("Program", NULL,
+            $1 != NULL ? $1->line : yylineno);
+        tree_add_child($$, $1);
+        syntax_tree_root = $$;
+    }
     ;
 
 ExtDefList:
-    ExtDef ExtDefList
-    | /* empty */
+    ExtDef ExtDefList {
+        $$ = tree_new("ExtDefList", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+    }
+    | /* empty */ {
+        $$ = NULL;
+    }
     ;
 
 ExtDef:
-    Specifier ExtDecList SEMI
-    | Specifier SEMI
-    | Specifier FunDec CompSt
+    Specifier ExtDecList SEMI {
+        $$ = tree_new("ExtDef", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+    }
+    | Specifier SEMI {
+        $$ = tree_new("ExtDef", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+    }
+    | Specifier FunDec CompSt {
+        $$ = tree_new("ExtDef", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+    }
     ;
 
 ExtDecList:
-    VarDec
-    | VarDec COMMA ExtDecList
+    VarDec {
+        $$ = tree_new("ExtDecList", NULL, $1->line);
+        tree_add_child($$, $1);
+    }
+    | VarDec COMMA ExtDecList {
+        $$ = tree_new("ExtDecList", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+    }
     ;
 
 FunDec:
-    ID LP VarList RP
-    | ID LP RP
+    ID LP VarList RP {
+        $$ = tree_new("FunDec", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+        tree_add_child($$, $4);
+    }
+    | ID LP RP {
+        $$ = tree_new("FunDec", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+    }
     ;
 
 VarList:
-    ParamDec COMMA VarList
-    | ParamDec
+    ParamDec COMMA VarList {
+        $$ = tree_new("VarList", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+    }
+    | ParamDec {
+        $$ = tree_new("VarList", NULL, $1->line);
+        tree_add_child($$, $1);
+    }
     ;
 
 ParamDec:
-    Specifier VarDec
+    Specifier VarDec {
+        $$ = tree_new("ParamDec", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+    }
     ;
 
 Stmt:
-    Exp SEMI
-    | RETURN Exp SEMI
-    | CompSt
-    | WHILE LP Exp RP Stmt
-    | IF LP Exp RP Stmt %prec LOWER_THAN_ELSE
-    | IF LP Exp RP Stmt ELSE Stmt
+    Exp SEMI {
+        $$ = tree_new("Stmt", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+    }
+    | RETURN Exp SEMI {
+        $$ = tree_new("Stmt", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+    }
+    | CompSt {
+        $$ = tree_new("Stmt", NULL, $1->line);
+        tree_add_child($$, $1);
+    }
+    | WHILE LP Exp RP Stmt {
+        $$ = tree_new("Stmt", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+        tree_add_child($$, $4);
+        tree_add_child($$, $5);
+    }
+    | IF LP Exp RP Stmt %prec LOWER_THAN_ELSE {
+        $$ = tree_new("Stmt", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+        tree_add_child($$, $4);
+        tree_add_child($$, $5);
+    }
+    | IF LP Exp RP Stmt ELSE Stmt {
+        $$ = tree_new("Stmt", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+        tree_add_child($$, $4);
+        tree_add_child($$, $5);
+        tree_add_child($$, $6);
+        tree_add_child($$, $7);
+    }
     ;
 
 CompSt:
-    LC DefList StmtList RC
+    LC DefList StmtList RC {
+        $$ = tree_new("CompSt", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+        tree_add_child($$, $4);
+    }
     ;
 
 StmtList:
-    Stmt StmtList
-    | /* empty */
+   Stmt StmtList {
+        $$ = tree_new("StmtList", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+    }
+    | /* empty */ {
+        $$ = NULL;
+    }
     ;
 
 DefList:
-    Def DefList
-    | /* empty */
+    Def DefList {
+        $$ = tree_new("DefList", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+    }
+    | /* empty */ {
+        $$ = NULL;
+    }
     ;
 
 Def:
-    Specifier DecList SEMI
+    Specifier DecList SEMI {
+        $$ = tree_new("Def", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+    }
     ;
 
 DecList:
-    Dec
-    | Dec COMMA DecList
+    Dec {
+        $$ = tree_new("DecList", NULL, $1->line);
+        tree_add_child($$, $1);
+    }
+    | Dec COMMA DecList {
+        $$ = tree_new("DecList", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+    }
     ;
 
 Dec:
-    VarDec
-    | VarDec ASSIGNOP Exp
+    VarDec {
+        $$ = tree_new("Dec", NULL, $1->line);
+        tree_add_child($$, $1);
+    }
+    | VarDec ASSIGNOP Exp {
+        $$ = tree_new("Dec", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+    }
     ;
 
 VarDec:
-    ID
-    | VarDec LB INT RB
+    ID {
+        $$ = tree_new("VarDec", NULL, $1->line);
+        tree_add_child($$, $1);
+    }
+    | VarDec LB INT RB {
+        $$ = tree_new("VarDec", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+        tree_add_child($$, $4);
+    }
     ;
 
 Specifier:
-    TYPE
-    | STRUCT OptTag LC DefList RC
-    | STRUCT Tag
+    TYPE {
+        $$ = tree_new("Specifier", NULL, $1->line);
+        tree_add_child($$, $1);
+    }
+    | STRUCT OptTag LC DefList RC {
+        $$ = tree_new("Specifier", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+        tree_add_child($$, $4);
+        tree_add_child($$, $5);
+    }
+    | STRUCT Tag {
+        $$ = tree_new("Specifier", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+    }
     ;
 
 Tag:
-    ID
+    ID {
+        $$ = tree_new("Tag", NULL, $1->line);
+        tree_add_child($$, $1);
+    }
     ;
 
 OptTag:
-    ID
-    | /* empty */
+    ID {
+        $$ = tree_new("OptTag", NULL, $1->line);
+        tree_add_child($$, $1);
+    }
+    | /* empty */ {
+        $$ = NULL;
+    }
     ;
 
 Exp:
-    ID
-    | INT
-    | FLOAT
-    | Exp PLUS Exp
-    | Exp MINUS Exp
-    | Exp STAR Exp
-    | Exp DIV Exp
-    | LP Exp RP
-    | MINUS Exp %prec UMINUS
-    | NOT Exp
-    | Exp RELOP Exp
-    | Exp AND Exp
-    | Exp OR Exp
-    | Exp ASSIGNOP Exp
-    | ID LP RP
-    | ID LP Args RP
-    | Exp LB Exp RB
-    | Exp DOT ID
+    ID {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+      }
+    | INT {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+      }
+    | FLOAT {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+      }
+    | Exp PLUS Exp {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+      }
+    | Exp MINUS Exp {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+      }
+    | Exp STAR Exp {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+      }
+    | Exp DIV Exp {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+      }
+    | LP Exp RP {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+      }
+    | MINUS Exp %prec UMINUS {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+      }
+    | NOT Exp {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+      }
+    | Exp RELOP Exp {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+      }
+    | Exp AND Exp {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+      }
+    | Exp OR Exp {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+      }
+    | Exp ASSIGNOP Exp {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+      }
+    | ID LP RP {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+      }
+    | ID LP Args RP {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+          tree_add_child($$, $4);
+      }
+    | Exp LB Exp RB {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+          tree_add_child($$, $4);
+      }
+    | Exp DOT ID {
+          $$ = tree_new("Exp", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+      }
     ;
 
 Args:
-    Exp COMMA Args
-    | Exp
+    Exp COMMA Args {
+          $$ = tree_new("Args", NULL, $1->line);
+          tree_add_child($$, $1);
+          tree_add_child($$, $2);
+          tree_add_child($$, $3);
+      }
+    | Exp {
+          $$ = tree_new("Args", NULL, $1->line);
+          tree_add_child($$, $1);
+      }
     ;
 %%
 
