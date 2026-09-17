@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 extern FILE *yyin;
-int yylex(void);
+int yyparse(void);
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -15,8 +15,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    yylex();
-    
+    int parse_result = yyparse();
+
     fclose(yyin);
-    return 0;
+    return parse_result;
 }

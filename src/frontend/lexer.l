@@ -3,6 +3,7 @@
 
 %{
 #include <stdio.h>
+#include "syntax.h"
 static int comment_start_line;
 %}
 
@@ -72,9 +73,9 @@ FLOAT {DIGIT}+\.{DIGIT}+
 ">" { printf("RELOP: %s\n", yytext); }
 "<" { printf("RELOP: %s\n", yytext); }
 
-{FLOAT} { printf("FLOAT: %s\n", yytext); }
-{DIGIT}+ { printf("INT: %s\n", yytext); }
-{ID} {printf("ID: %s\n", yytext); }
+{FLOAT} { return FLOAT; }
+{DIGIT}+ { return INT; }
+{ID} { return ID; }
 
 . {
     fprintf(stderr,
