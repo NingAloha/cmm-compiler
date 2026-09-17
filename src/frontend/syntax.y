@@ -149,3 +149,5 @@ void yyerror(const char *message) {
     fprintf(stderr, "Error type B at Line %d: %s\n",
         yylineno, message);
 }
+
+#include "lex.yy.c"

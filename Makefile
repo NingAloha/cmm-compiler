@@ -6,9 +6,9 @@ CFLAGS := -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra
 
 BUILD_DIR := build
 PARSER_SPEC := src/frontend/syntax.y
-PARSER_SOURCE := $(BUILD_DIR)/syntax.c
+PARSER_SOURCE := $(BUILD_DIR)/syntax.tab.c
 LEXER_SPEC := src/frontend/lexer.l
-LEXER_SOURCE := $(BUILD_DIR)/lexer.c
+LEXER_SOURCE := $(BUILD_DIR)/lexer.yy.c
 DRIVER_SOURCE := src/driver/main.c
 TARGET := $(BUILD_DIR)/parser
 VALID_TESTS := $(sort $(shell find tests/parser/valid -type f -name '*.cmm'))
@@ -28,7 +28,7 @@ $(LEXER_SOURCE): $(LEXER_SPEC) $(PARSER_SOURCE) | $(BUILD_DIR)
 	$(FLEX) -o $@ $<
 
 $(TARGET): $(PARSER_SOURCE) $(LEXER_SOURCE) $(DRIVER_SOURCE)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $(PARSER_SOURCE) $(DRIVER_SOURCE)
 
 clean:
 	rm -rf $(BUILD_DIR)

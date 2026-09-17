@@ -3,7 +3,7 @@
 
 %{
 #include <stdio.h>
-#include "syntax.h"
+#include "syntax.tab.h"
 static int comment_start_line;
 %}
 
