@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "tree.h"
+#include "../frontend/tree.h"
 
 extern FILE *yyin;
 extern TreeNode *syntax_tree_root;
