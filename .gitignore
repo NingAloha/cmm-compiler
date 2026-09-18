@@ -1,4 +1,5 @@
 build/
-docs/
 report.*
 submit.zip
+*.pdf
+*Makefile_ref

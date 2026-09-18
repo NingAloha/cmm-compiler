@@ -1,0 +1,7 @@
+int main()
+{
+    /* outer comment
+       /* inner-looking text */
+    */
+    int value = 1;
+}

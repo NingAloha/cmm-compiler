@@ -1,0 +1,18 @@
+# 相对项目根目录的路径|预期退出码|必须匹配的输出正则
+tests/valid/01-minimal-function.cmm|0|^Program \(1\)$
+tests/valid/02-global-struct.cmm|0|^Program \(1\)$
+tests/valid/03-expressions.cmm|0|^Program \(1\)$
+tests/valid/04-arrays-and-calls.cmm|0|^Program \(1\)$
+tests/valid/05-optional-numbers.cmm|0|^Program \(1\)$
+tests/valid/06-comments.cmm|0|^Program \(1\)$
+tests/invalid/lexical/01-mysterious-character.cmm|1|^Error type A at Line 3:
+tests/invalid/lexical/02-invalid-octal.cmm|1|^Error type A at Line 3:
+tests/invalid/lexical/03-invalid-hexadecimal.cmm|1|^Error type A at Line 3:
+tests/invalid/lexical/04-invalid-exponent.cmm|1|^Error type A at Line 3:
+tests/invalid/lexical/05-invalid-fraction.cmm|1|^Error type A at Line 3:
+tests/invalid/lexical/06-unterminated-comment.cmm|1|^Error type A at Line 3:
+tests/invalid/syntax/01-array-comma.cmm|1|^Error type B at Line 4:
+tests/invalid/syntax/02-missing-semi-before-else.cmm|1|^Error type B at Line 4:
+tests/invalid/syntax/03-bad-parameter-list.cmm|1|^Error type B at Line 1:
+tests/invalid/syntax/04-unclosed-parenthesis.cmm|1|^Error type B at Line 4:
+tests/invalid/syntax/05-nested-comment-remainder.cmm|1|^Error type B at Line 5:

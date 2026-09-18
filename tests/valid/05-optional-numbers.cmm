@@ -1,0 +1,9 @@
+int main()
+{
+    int octal = 0123;
+    int hexadecimal = 0x3F;
+    float a = 1.05e-4;
+    float b = 43.e-4;
+    float c = .5E03;
+    return 0;
+}

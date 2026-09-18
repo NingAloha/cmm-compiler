@@ -1,0 +1,3 @@
+int main()
+{
+    /* The file ends before this block comment is closed.
