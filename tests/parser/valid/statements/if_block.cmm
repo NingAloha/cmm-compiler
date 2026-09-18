@@ -1,6 +1,0 @@
-int main() {
-    if (ready) {
-        return result;
-    }
-
-}

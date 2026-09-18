@@ -1,8 +1,0 @@
-int main() {
-    {
-        int x, y, z;
-        float width, height;
-        return x;
-    }
-
-}
