@@ -35,7 +35,7 @@ TreeNode *syntax_tree_root;
 %type <node> FunDec VarList ParamDec
 %type <node> Stmt CompSt StmtList
 %type <node> DefList Def DecList Dec VarDec
-%type <node> Specifier Tag OptTag
+%type <node> Specifier StructSpecifier Tag OptTag
 %type <node> Exp Args
 
 %start Program
@@ -261,8 +261,15 @@ Specifier:
         $$ = tree_new("Specifier", NULL, $1->line);
         tree_add_child($$, $1);
     }
-    | STRUCT OptTag LC DefList RC {
+    | StructSpecifier {
         $$ = tree_new("Specifier", NULL, $1->line);
+        tree_add_child($$, $1);
+    }
+    ;
+
+StructSpecifier:
+    STRUCT OptTag LC DefList RC {
+        $$ = tree_new("StructSpecifier", NULL, $1->line);
         tree_add_child($$, $1);
         tree_add_child($$, $2);
         tree_add_child($$, $3);
@@ -270,7 +277,7 @@ Specifier:
         tree_add_child($$, $5);
     }
     | STRUCT Tag {
-        $$ = tree_new("Specifier", NULL, $1->line);
+        $$ = tree_new("StructSpecifier", NULL, $1->line);
         tree_add_child($$, $1);
         tree_add_child($$, $2);
     }
