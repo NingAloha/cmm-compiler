@@ -4,6 +4,7 @@
 extern FILE *yyin;
 extern TreeNode *syntax_tree_root;
 extern int lexical_error;
+extern int syntax_error;
 int yyparse(void);
 
 int main(int argc, char *argv[]) {
@@ -21,7 +22,8 @@ int main(int argc, char *argv[]) {
     int result = yyparse();
     fclose(yyin);
     
-    if (result == 0 && !lexical_error && syntax_tree_root != NULL) {
+    if (result == 0 && !lexical_error && !syntax_error
+        && syntax_tree_root != NULL) {
         tree_print(syntax_tree_root, 0);
     }
 
