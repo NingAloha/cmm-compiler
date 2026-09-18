@@ -1,0 +1,18 @@
+struct Pair {
+    int left, right;
+};
+
+int add(struct Pair p, int scale) {
+    int total = p.left + p.right;
+    if (total > 0) {
+        return add(p, scale - 1);
+    } else
+        return total * scale;
+}
+
+int main() {
+    struct Pair item;
+    item.left = 1;
+    item.right = 2;
+    return add(item, 3);
+}

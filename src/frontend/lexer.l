@@ -44,6 +44,7 @@ BAD_FLOAT     ({FRACTION}|{DIGIT}+)[eE][+-]?
 HEX_INT  0[xX][0-9a-fA-F]+
 BAD_HEX 0[xX][0-9A-Za-z]*
 OCT_INT 0[0-7]+
+BAD_OCT 0[0-7]*[89][0-9]*
 DEC_INT [0-9]+
 
 %%
@@ -82,10 +83,10 @@ DEC_INT [0-9]+
     return 0;
 }
 
-">=" { return make_token(RELOP, "RELOP", yytext); }
-"<=" { return make_token(RELOP, "RELOP", yytext); }
-"==" { return make_token(RELOP, "RELOP", yytext); }
-"!=" { return make_token(RELOP, "RELOP", yytext); }
+">=" { return make_token(RELOP, "RELOP", ""); }
+"<=" { return make_token(RELOP, "RELOP", ""); }
+"==" { return make_token(RELOP, "RELOP", ""); }
+"!=" { return make_token(RELOP, "RELOP", ""); }
 
 "&&" { return make_token(AND, "AND", ""); }
 "||" { return make_token(OR, "OR", ""); }
@@ -106,8 +107,8 @@ DEC_INT [0-9]+
 "." { return make_token(DOT, "DOT", ""); }
 "!" { return make_token(NOT, "NOT", ""); }
 
-">"  { return make_token(RELOP, "RELOP", yytext); }
-"<"  { return make_token(RELOP, "RELOP", yytext); }
+">"  { return make_token(RELOP, "RELOP", ""); }
+"<"  { return make_token(RELOP, "RELOP", ""); }
 
 {FLOAT_LITERAL} { return make_float_token(yytext); }
 {BAD_FLOAT} {
@@ -125,6 +126,12 @@ DEC_INT [0-9]+
         yylineno, yytext);
 }
 {OCT_INT} { return make_int_token(yytext); }
+{BAD_OCT} {
+    lexical_error = 1;
+    fprintf(stderr,
+        "Error type A at Line %d: Mysterious character \"%s\".\n",
+        yylineno, yytext);
+}
 {DEC_INT} { return make_int_token(yytext); }
 
 {ID}     { return make_token(ID, "ID", yytext); }
