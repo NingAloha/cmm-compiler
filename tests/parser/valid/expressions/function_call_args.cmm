@@ -1,3 +1,0 @@
-int main() {
-    sum(a, b + 1);
-}

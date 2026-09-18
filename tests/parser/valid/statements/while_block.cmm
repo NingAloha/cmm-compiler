@@ -1,6 +1,0 @@
-int main() {
-    while (count) {
-        count = count - 1;
-    }
-
-}

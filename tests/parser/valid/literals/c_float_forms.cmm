@@ -1,6 +1,0 @@
-int main() {
-    float leading_fraction = .5;
-    float trailing_fraction = 3.;
-    float exponent_only = 1e5;
-    return 0;
-}

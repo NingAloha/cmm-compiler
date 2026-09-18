@@ -1,4 +1,0 @@
-int main() {
-    int value = 09;
-    return value;
-}

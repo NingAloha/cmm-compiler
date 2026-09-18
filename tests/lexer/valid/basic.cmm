@@ -1,7 +1,0 @@
-int main() {
-    int answer = 42;
-    float ratio = 3.14;
-
-    // 这一行应该被忽略
-    return answer;
-}

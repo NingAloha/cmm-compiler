@@ -1,3 +1,0 @@
-int main() {
-  float malformed = 127.2.2.1;
-}
