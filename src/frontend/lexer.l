@@ -43,10 +43,8 @@ DIGIT [0-9]
 
 ID [A-Za-z_][A-Za-z0-9_]*
 
-EXPONENT      [eE][+-]?{DIGIT}+
 FRACTION      ({DIGIT}*\.{DIGIT}+|{DIGIT}+\.{DIGIT}*)
-FLOAT_LITERAL ({FRACTION}{EXPONENT}?|{DIGIT}+{EXPONENT})
-BAD_FLOAT     ({FRACTION}|{DIGIT}+)[eE][+-]?
+FLOAT_LITERAL {FRACTION}
 BAD_FLOAT_DOTS {FRACTION}(\.{DIGIT}+)+
 
 HEX_INT  0[xX][0-9a-fA-F]+
@@ -69,7 +67,10 @@ DEC_INT [0-9]+
 [ \t\r]+ { /* 忽略空格、Tab 和回车。 */ }
 \n { /* yylineno 会自动把行号加一。 */ }
 
-"//".* { /* 忽略从 // 到这一行结尾的全部内容。 */ }
+"//".* {
+    yyless(1);
+    return make_token(DIV, "DIV", "");
+}
 "/*" {
     comment_start_line = yylineno;
     BEGIN(COMMENT);
@@ -123,9 +124,6 @@ DEC_INT [0-9]+
 }
 
 {FLOAT_LITERAL} { return make_float_token(yytext); }
-{BAD_FLOAT} {
-    report_mysterious_character(yytext);
-}
 
 {HEX_INT} { return make_int_token(yytext); }
 {BAD_HEX} {
