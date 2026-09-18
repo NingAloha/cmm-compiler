@@ -17,8 +17,29 @@ static int make_token(int token, const char *name, const char *text) {
 
 static void report_mysterious_character(const char *text) {
     lexical_error = 1;
-    fprintf(stderr,
+    fprintf(stdout,
             "Error type A at Line %d: Mysterious character \"%s\".\n",
+            yylineno, text);
+}
+
+static void report_illegal_octal_number(const char *text) {
+    lexical_error = 1;
+    fprintf(stdout,
+            "Error type A at Line %d: Illegal octal number '%s'.\n",
+            yylineno, text);
+}
+
+static void report_illegal_hexadecimal_number(const char *text) {
+    lexical_error = 1;
+    fprintf(stdout,
+            "Error type A at Line %d: Illegal hexadecimal number '%s'.\n",
+            yylineno, text);
+}
+
+static void report_illegal_floating_point_number(const char *text) {
+    lexical_error = 1;
+    fprintf(stdout,
+            "Error type A at Line %d: Illegal floating point number \"%s\".\n",
             yylineno, text);
 }
 
@@ -43,11 +64,15 @@ DIGIT [0-9]
 
 ID [A-Za-z_][A-Za-z0-9_]*
 
-FRACTION      ({DIGIT}*\.{DIGIT}+|{DIGIT}+\.{DIGIT}*)
-EXPONENT      [eE][+-]?{DIGIT}+
-FLOAT_LITERAL ({FRACTION}{EXPONENT}?|{DIGIT}+{EXPONENT})
-BAD_FLOAT_DOTS {FRACTION}(\.{DIGIT}+)+
-BAD_EXPONENT  ({FRACTION}|{DIGIT}+)[eE][+-]?
+PLAIN_FRACTION {DIGIT}+\.{DIGIT}+
+EXP_BASE       ({DIGIT}*\.{DIGIT}+|{DIGIT}+\.{DIGIT}*)
+EXPONENT       [eE][+-]?{DIGIT}+
+FLOAT_LITERAL  ({PLAIN_FRACTION}|{EXP_BASE}{EXPONENT})
+BAD_FLOAT_DOTS {EXP_BASE}(\.{DIGIT}+)+
+BAD_EXPONENT   ({EXP_BASE}|{DIGIT}+)[eE][+-]?
+BAD_NO_DOT_EXP {DIGIT}+[eE][+-]?{DIGIT}+
+BAD_LEADING_DOT \.[0-9]+
+BAD_TRAILING_DOT {DIGIT}+\.
 
 HEX_INT  0[xX][0-9a-fA-F]+
 BAD_HEX 0[xX][0-9A-Za-z]*
@@ -69,10 +94,7 @@ DEC_INT [0-9]+
 [ \t\r]+ { /* 忽略空格、Tab 和回车。 */ }
 \n { /* yylineno 会自动把行号加一。 */ }
 
-"//".* {
-    yyless(1);
-    return make_token(DIV, "DIV", "");
-}
+"//".* { /* 忽略从 // 到该行结尾的全部内容。 */ }
 "/*" {
     comment_start_line = yylineno;
     BEGIN(COMMENT);
@@ -88,7 +110,7 @@ DEC_INT [0-9]+
 }
 <COMMENT><<EOF>> {
     lexical_error = 1;
-    fprintf(stderr,
+    fprintf(stdout,
         "Error type A at Line %d: Unterminated comment.\n",
         comment_start_line);
     return 0;
@@ -122,22 +144,34 @@ DEC_INT [0-9]+
 "<"  { return make_token(RELOP, "RELOP", ""); }
 
 {BAD_FLOAT_DOTS} {
-    report_mysterious_character(yytext);
+    report_illegal_floating_point_number(yytext);
 }
 
 {BAD_EXPONENT} {
-    report_mysterious_character(yytext);
+    report_illegal_floating_point_number(yytext);
+}
+
+{BAD_NO_DOT_EXP} {
+    report_illegal_floating_point_number(yytext);
+}
+
+{BAD_LEADING_DOT} {
+    report_illegal_floating_point_number(yytext);
+}
+
+{BAD_TRAILING_DOT} {
+    report_illegal_floating_point_number(yytext);
 }
 
 {FLOAT_LITERAL} { return make_float_token(yytext); }
 
 {HEX_INT} { return make_int_token(yytext); }
 {BAD_HEX} {
-    report_mysterious_character(yytext);
+    report_illegal_hexadecimal_number(yytext);
 }
 {OCT_INT} { return make_int_token(yytext); }
 {BAD_OCT} {
-    report_mysterious_character(yytext);
+    report_illegal_octal_number(yytext);
 }
 {DEC_INT} { return make_int_token(yytext); }
 

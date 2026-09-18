@@ -28,5 +28,5 @@ int main(int argc, char *argv[]) {
     }
 
     tree_free(syntax_tree_root);
-    return lexical_error ? 1 : 0;
+    return (parse_status != 0 || lexical_error || syntax_error) ? 1 : 0;
 }
