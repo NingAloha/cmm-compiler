@@ -1,0 +1,8 @@
+int main()
+{
+    // This line is ignored.
+    /* This block comment
+       spans two lines. */
+    int value = 1;
+    return value;
+}
