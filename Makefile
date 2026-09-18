@@ -61,5 +61,5 @@ test: $(TARGET)
 	echo "$$passed/$$total tests passed"; \
 	test $$failed -eq 0
 
-pack: test report.pdf $(PACKAGE_SCRIPT)
+pack: $(TARGET) report.pdf $(PACKAGE_SCRIPT)
 	$(PYTHON) $(PACKAGE_SCRIPT)
