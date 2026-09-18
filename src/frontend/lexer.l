@@ -47,6 +47,7 @@ EXPONENT      [eE][+-]?{DIGIT}+
 FRACTION      ({DIGIT}*\.{DIGIT}+|{DIGIT}+\.{DIGIT}*)
 FLOAT_LITERAL ({FRACTION}{EXPONENT}?|{DIGIT}+{EXPONENT})
 BAD_FLOAT     ({FRACTION}|{DIGIT}+)[eE][+-]?
+BAD_FLOAT_DOTS {FRACTION}(\.{DIGIT}+)+
 
 HEX_INT  0[xX][0-9a-fA-F]+
 BAD_HEX 0[xX][0-9A-Za-z]*
@@ -116,6 +117,10 @@ DEC_INT [0-9]+
 
 ">"  { return make_token(RELOP, "RELOP", ""); }
 "<"  { return make_token(RELOP, "RELOP", ""); }
+
+{BAD_FLOAT_DOTS} {
+    report_mysterious_character(yytext);
+}
 
 {FLOAT_LITERAL} { return make_float_token(yytext); }
 {BAD_FLOAT} {
