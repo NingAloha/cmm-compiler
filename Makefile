@@ -35,17 +35,24 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 test: $(TARGET)
-	@for test in $(VALID_TESTS); do \
-		if ./$(TARGET) "$$test" >/dev/null; then \
-			echo "PASS $$test"; \
-		else \
-			echo "FAIL $$test"; exit 1; \
-		fi; \
-	done
-	@for test in $(INVALID_TESTS); do \
+	@passed=0; total=0; failed=0; \
+	for test in $(VALID_TESTS); do \
+		total=$$((total + 1)); \
 		if ./$(TARGET) "$$test" >/dev/null 2>&1; then \
-			echo "FAIL (expected rejection) $$test"; exit 1; \
+			passed=$$((passed + 1)); \
 		else \
-			echo "PASS (rejected) $$test"; \
+			echo "FAIL (expected acceptance) $$test"; \
+			failed=$$((failed + 1)); \
 		fi; \
-	done
+	done; \
+	for test in $(INVALID_TESTS); do \
+		total=$$((total + 1)); \
+		if ./$(TARGET) "$$test" >/dev/null 2>&1; then \
+			echo "FAIL (expected rejection) $$test"; \
+			failed=$$((failed + 1)); \
+		else \
+			passed=$$((passed + 1)); \
+		fi; \
+	done; \
+	echo "$$passed/$$total tests passed"; \
+	test $$failed -eq 0

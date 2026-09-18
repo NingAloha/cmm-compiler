@@ -19,14 +19,14 @@ DIGIT [0-9]
 ID [A-Za-z_][A-Za-z0-9_]*
 
 EXPONENT      [eE][+-]?{DIGIT}+
-FLOAT_LITERAL {DIGIT}+\.{DIGIT}+{EXPONENT}?
-BAD_FLOAT {DIGIT}+\.{DIGIT}+[eE][+-]?
+FRACTION      ({DIGIT}*\.{DIGIT}+|{DIGIT}+\.{DIGIT}*)
+FLOAT_LITERAL ({FRACTION}{EXPONENT}?|{DIGIT}+{EXPONENT})
+BAD_FLOAT     ({FRACTION}|{DIGIT}+)[eE][+-]?
 
 HEX_INT  0[xX][0-9a-fA-F]+
 BAD_HEX 0[xX][0-9A-Za-z]*
-OCT_INT  0[0-7]+
-BAD_OCT 0[0-9]+
-DEC_INT  0|[1-9][0-9]*
+OCT_INT 0[0-7]+
+DEC_INT [0-9]+
 
 %%
 
@@ -109,12 +109,6 @@ DEC_INT  0|[1-9][0-9]*
         yylineno, yytext);
 }
 {OCT_INT} { return make_token(INT, "INT", yytext); }
-{BAD_OCT} {
-    lexical_error = 1;
-    fprintf(stderr,
-        "Error type A at Line %d: Mysterious character \"%s\".\n",
-        yylineno, yytext);
-}
 {DEC_INT} { return make_token(INT, "INT", yytext); }
 
 {ID}     { return make_token(ID, "ID", yytext); }
