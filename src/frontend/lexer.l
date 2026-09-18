@@ -15,6 +15,13 @@ static int make_token(int token, const char *name, const char *text) {
     return token;
 }
 
+static void report_mysterious_character(const char *text) {
+    lexical_error = 1;
+    fprintf(stderr,
+            "Error type A at Line %d: Mysterious character \"%s\".\n",
+            yylineno, text);
+}
+
 static int make_int_token(const char *text) {
     char decimal[32];
     unsigned long value = strtoul(text, NULL, 0);
@@ -112,35 +119,23 @@ DEC_INT [0-9]+
 
 {FLOAT_LITERAL} { return make_float_token(yytext); }
 {BAD_FLOAT} {
-    lexical_error = 1;
-    fprintf(stderr,
-        "Error type A at Line %d: Mysterious character \"%s\".\n",
-        yylineno, yytext);
+    report_mysterious_character(yytext);
 }
 
 {HEX_INT} { return make_int_token(yytext); }
 {BAD_HEX} {
-    lexical_error = 1;
-    fprintf(stderr,
-        "Error type A at Line %d: Mysterious character \"%s\".\n",
-        yylineno, yytext);
+    report_mysterious_character(yytext);
 }
 {OCT_INT} { return make_int_token(yytext); }
 {BAD_OCT} {
-    lexical_error = 1;
-    fprintf(stderr,
-        "Error type A at Line %d: Mysterious character \"%s\".\n",
-        yylineno, yytext);
+    report_mysterious_character(yytext);
 }
 {DEC_INT} { return make_int_token(yytext); }
 
 {ID}     { return make_token(ID, "ID", yytext); }
 
 . {
-    lexical_error = 1;
-    fprintf(stderr,
-        "Error type A at Line %d: Mysterious character \"%s\".\n",
-        yylineno, yytext);
+    report_mysterious_character(yytext);
 }
 
 %%

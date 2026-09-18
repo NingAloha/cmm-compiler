@@ -6,6 +6,7 @@ typedef struct TreeNode {
     char *text;
     int line;
     struct TreeNode *first_child;
+    struct TreeNode *last_child;
     struct TreeNode *next_sibling;
 } TreeNode;
 
