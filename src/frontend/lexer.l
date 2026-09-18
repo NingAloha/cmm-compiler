@@ -7,6 +7,7 @@
 #include "tree.h"
 
 static int comment_start_line;
+int lexical_error = 0;
 static int make_token(int token, const char *name, const char *text) {
     yylval.node = tree_new(name, text, yylineno);
     return token;
@@ -14,8 +15,18 @@ static int make_token(int token, const char *name, const char *text) {
 %}
 
 DIGIT [0-9]
+
 ID [A-Za-z_][A-Za-z0-9_]*
-FLOAT {DIGIT}+\.{DIGIT}+
+
+EXPONENT      [eE][+-]?{DIGIT}+
+FLOAT_LITERAL {DIGIT}+\.{DIGIT}+{EXPONENT}?
+BAD_FLOAT {DIGIT}+\.{DIGIT}+[eE][+-]?
+
+HEX_INT  0[xX][0-9a-fA-F]+
+BAD_HEX 0[xX][0-9A-Za-z]*
+OCT_INT  0[0-7]+
+BAD_OCT 0[0-9]+
+DEC_INT  0|[1-9][0-9]*
 
 %%
 
@@ -46,6 +57,7 @@ FLOAT {DIGIT}+\.{DIGIT}+
     /* 忽略注释中的普通字符。 */
 }
 <COMMENT><<EOF>> {
+    lexical_error = 1;
     fprintf(stderr,
         "Error type A at Line %d: Unterminated comment.\n",
         comment_start_line);
@@ -79,11 +91,36 @@ FLOAT {DIGIT}+\.{DIGIT}+
 ">"  { return make_token(RELOP, "RELOP", yytext); }
 "<"  { return make_token(RELOP, "RELOP", yytext); }
 
-{FLOAT}  { return make_token(FLOAT, "FLOAT", yytext); }
-{DIGIT}+ { return make_token(INT, "INT", yytext); }
+{FLOAT_LITERAL} {
+    return make_token(FLOAT, "FLOAT", yytext);
+}
+{BAD_FLOAT} {
+    lexical_error = 1;
+    fprintf(stderr,
+        "Error type A at Line %d: Mysterious character \"%s\".\n",
+        yylineno, yytext);
+}
+
+{HEX_INT} { return make_token(INT, "INT", yytext); }
+{BAD_HEX} {
+    lexical_error = 1;
+    fprintf(stderr,
+        "Error type A at Line %d: Mysterious character \"%s\".\n",
+        yylineno, yytext);
+}
+{OCT_INT} { return make_token(INT, "INT", yytext); }
+{BAD_OCT} {
+    lexical_error = 1;
+    fprintf(stderr,
+        "Error type A at Line %d: Mysterious character \"%s\".\n",
+        yylineno, yytext);
+}
+{DEC_INT} { return make_token(INT, "INT", yytext); }
+
 {ID}     { return make_token(ID, "ID", yytext); }
 
 . {
+    lexical_error = 1;
     fprintf(stderr,
         "Error type A at Line %d: Mysterious character \"%s\".\n",
         yylineno, yytext);

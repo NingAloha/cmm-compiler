@@ -4,6 +4,7 @@
 
 int yylex(void);
 extern int yylineno;
+extern int lexical_error;
 void yyerror(const char *message);
 TreeNode *syntax_tree_root;
 %}
@@ -412,6 +413,10 @@ Args:
 %%
 
 void yyerror(const char *message) {
+    if (lexical_error) {
+        return;
+    }
+
     fprintf(stderr, "Error type B at Line %d: %s\n",
         yylineno, message);
 }

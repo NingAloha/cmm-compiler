@@ -1,0 +1,8 @@
+int main() {
+    int decimal = 42;
+    int octal_zero = 00;
+    int octal = 0237;
+    int hexadecimal = 0xFF32;
+    float ratio = 3.14e-5;
+    return decimal;
+}
