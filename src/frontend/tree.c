@@ -30,6 +30,7 @@ TreeNode *tree_new(const char *name, const char *text, int line) {
     node->text = copy_string(text);
     node->line = line;
     node->first_child = NULL;
+    node->last_child = NULL;
     node->next_sibling = NULL;
 
     return node;
@@ -42,16 +43,11 @@ void tree_add_child(TreeNode *parent, TreeNode *child) {
 
     if (parent->first_child == NULL) {
         parent->first_child = child;
-        return;
+    } else {
+        parent->last_child->next_sibling = child;
     }
 
-    TreeNode *last_child = parent->first_child;
-
-    while (last_child->next_sibling != NULL) {
-        last_child = last_child->next_sibling;
-    }
-
-    last_child->next_sibling = child;
+    parent->last_child = child;
 }
 
 void tree_print(const TreeNode *node, int depth) {

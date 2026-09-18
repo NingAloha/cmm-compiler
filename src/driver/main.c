@@ -19,14 +19,14 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    int result = yyparse();
+    int parse_status = yyparse();
     fclose(yyin);
-    
-    if (result == 0 && !lexical_error && !syntax_error
+
+    if (parse_status == 0 && !lexical_error && !syntax_error
         && syntax_tree_root != NULL) {
         tree_print(syntax_tree_root, 0);
     }
 
     tree_free(syntax_tree_root);
-    return (result != 0 || lexical_error) ? 1 : 0;
+    return (parse_status != 0 || lexical_error) ? 1 : 0;
 }
