@@ -13,11 +13,10 @@ LEXER_SOURCE := $(BUILD_DIR)/lex.yy.c
 DRIVER_SOURCE := src/driver/main.c
 TREE_SOURCE := src/frontend/tree.c
 TARGET := $(BUILD_DIR)/parser
-PACKAGE_SCRIPT := scripts/package.py
 VALID_TESTS := $(sort $(shell find tests/parser/valid -type f -name '*.cmm'))
 INVALID_TESTS := $(sort $(shell find tests/parser/invalid -type f -name '*.cmm'))
 
-.PHONY: all clean test pack
+.PHONY: all clean test
 
 all: $(TARGET)
 
@@ -60,6 +59,3 @@ test: $(TARGET)
 	done; \
 	echo "$$passed/$$total tests passed"; \
 	test $$failed -eq 0
-
-pack: $(TARGET) report.pdf $(PACKAGE_SCRIPT)
-	$(PYTHON) $(PACKAGE_SCRIPT)
