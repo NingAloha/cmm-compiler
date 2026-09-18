@@ -40,7 +40,8 @@ test: $(TARGET)
 	@passed=0; total=0; failed=0; \
 	for test in $(VALID_TESTS); do \
 		total=$$((total + 1)); \
-		if ./$(TARGET) "$$test" >/dev/null 2>&1; then \
+		output=$$(./$(TARGET) "$$test" 2>&1); status=$$?; \
+		if [ "$$status" -eq 0 ] && ! printf "%s\n" "$$output" | grep -q "^Error type [AB] at Line "; then \
 			passed=$$((passed + 1)); \
 		else \
 			echo "FAIL (expected acceptance) $$test"; \
@@ -49,11 +50,12 @@ test: $(TARGET)
 	done; \
 	for test in $(INVALID_TESTS); do \
 		total=$$((total + 1)); \
-		if ./$(TARGET) "$$test" >/dev/null 2>&1; then \
-			echo "FAIL (expected rejection) $$test"; \
-			failed=$$((failed + 1)); \
-		else \
+		output=$$(./$(TARGET) "$$test" 2>&1); \
+		if printf "%s\n" "$$output" | grep -q "^Error type [AB] at Line "; then \
 			passed=$$((passed + 1)); \
+		else \
+			echo "FAIL (expected error) $$test"; \
+			failed=$$((failed + 1)); \
 		fi; \
 	done; \
 	echo "$$passed/$$total tests passed"; \

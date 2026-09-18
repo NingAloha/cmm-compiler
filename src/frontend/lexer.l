@@ -3,14 +3,32 @@
 
 %{
 #include <stdio.h>
+#include <stdlib.h>
 #include "syntax.tab.h"
 #include "tree.h"
 
 static int comment_start_line;
 int lexical_error = 0;
+
 static int make_token(int token, const char *name, const char *text) {
     yylval.node = tree_new(name, text, yylineno);
     return token;
+}
+
+static int make_int_token(const char *text) {
+    char decimal[32];
+    unsigned long value = strtoul(text, NULL, 0);
+
+    snprintf(decimal, sizeof(decimal), "%lu", value);
+    return make_token(INT, "INT", decimal);
+}
+
+static int make_float_token(const char *text) {
+    char decimal[64];
+    float value = strtof(text, NULL);
+
+    snprintf(decimal, sizeof(decimal), "%f", value);
+    return make_token(FLOAT, "FLOAT", decimal);
 }
 %}
 
@@ -91,9 +109,7 @@ DEC_INT [0-9]+
 ">"  { return make_token(RELOP, "RELOP", yytext); }
 "<"  { return make_token(RELOP, "RELOP", yytext); }
 
-{FLOAT_LITERAL} {
-    return make_token(FLOAT, "FLOAT", yytext);
-}
+{FLOAT_LITERAL} { return make_float_token(yytext); }
 {BAD_FLOAT} {
     lexical_error = 1;
     fprintf(stderr,
@@ -101,15 +117,15 @@ DEC_INT [0-9]+
         yylineno, yytext);
 }
 
-{HEX_INT} { return make_token(INT, "INT", yytext); }
+{HEX_INT} { return make_int_token(yytext); }
 {BAD_HEX} {
     lexical_error = 1;
     fprintf(stderr,
         "Error type A at Line %d: Mysterious character \"%s\".\n",
         yylineno, yytext);
 }
-{OCT_INT} { return make_token(INT, "INT", yytext); }
-{DEC_INT} { return make_token(INT, "INT", yytext); }
+{OCT_INT} { return make_int_token(yytext); }
+{DEC_INT} { return make_int_token(yytext); }
 
 {ID}     { return make_token(ID, "ID", yytext); }
 

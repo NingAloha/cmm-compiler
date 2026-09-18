@@ -5,6 +5,7 @@
 int yylex(void);
 extern int yylineno;
 extern int lexical_error;
+int syntax_error = 0;
 void yyerror(const char *message);
 TreeNode *syntax_tree_root;
 %}
@@ -172,6 +173,10 @@ Stmt:
         tree_add_child($$, $5);
         tree_add_child($$, $6);
         tree_add_child($$, $7);
+    }
+    | error SEMI {
+        yyerrok;
+        $$ = tree_new("Stmt", NULL, yylineno);
     }
     ;
 
@@ -424,6 +429,7 @@ void yyerror(const char *message) {
         return;
     }
 
+    syntax_error = 1;
     fprintf(stderr, "Error type B at Line %d: %s\n",
         yylineno, message);
 }
