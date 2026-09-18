@@ -80,6 +80,10 @@ ExtDef:
         tree_add_child($$, $2);
         tree_add_child($$, $3);
     }
+    | error SEMI {
+        yyerrok;
+        $$ = tree_new("ExtDef", NULL, yylineno);
+    }
     ;
 
 ExtDecList:
@@ -108,6 +112,13 @@ FunDec:
         tree_add_child($$, $1);
         tree_add_child($$, $2);
         tree_add_child($$, $3);
+    }
+    | ID LP error RP {
+        yyerrok;
+        $$ = tree_new("FunDec", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $4);
     }
     ;
 
@@ -175,8 +186,33 @@ Stmt:
         tree_add_child($$, $7);
     }
     | error SEMI {
-        yyerrok;
         $$ = tree_new("Stmt", NULL, yylineno);
+    }
+    | WHILE LP error RP Stmt {
+        yyerrok;
+        $$ = tree_new("Stmt", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $4);
+        tree_add_child($$, $5);
+    }
+    | IF LP error RP Stmt %prec LOWER_THAN_ELSE {
+        yyerrok;
+        $$ = tree_new("Stmt", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $4);
+        tree_add_child($$, $5);
+    }
+    | IF LP error RP Stmt ELSE Stmt {
+        yyerrok;
+        $$ = tree_new("Stmt", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $4);
+        tree_add_child($$, $5);
+        tree_add_child($$, $6);
+        tree_add_child($$, $7);
     }
     ;
 
@@ -186,6 +222,13 @@ CompSt:
         tree_add_child($$, $1);
         tree_add_child($$, $2);
         tree_add_child($$, $3);
+        tree_add_child($$, $4);
+    }
+    | LC DefList error RC {
+        yyerrok;
+        $$ = tree_new("CompSt", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
         tree_add_child($$, $4);
     }
     ;
@@ -218,6 +261,11 @@ Def:
         tree_add_child($$, $1);
         tree_add_child($$, $2);
         tree_add_child($$, $3);
+    }
+    | Specifier error SEMI {
+        yyerrok;
+        $$ = tree_new("Def", NULL, $1->line);
+        tree_add_child($$, $1);
     }
     ;
 
@@ -259,6 +307,13 @@ VarDec:
         tree_add_child($$, $3);
         tree_add_child($$, $4);
     }
+    | VarDec LB error RB {
+        yyerrok;
+        $$ = tree_new("VarDec", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $4);
+    }
     ;
 
 Specifier:
@@ -285,6 +340,15 @@ StructSpecifier:
         $$ = tree_new("StructSpecifier", NULL, $1->line);
         tree_add_child($$, $1);
         tree_add_child($$, $2);
+    }
+    | STRUCT OptTag LC DefList error RC {
+        yyerrok;
+        $$ = tree_new("StructSpecifier", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $3);
+        tree_add_child($$, $4);
+        tree_add_child($$, $6);
     }
     ;
 
@@ -408,6 +472,26 @@ Exp:
           tree_add_child($$, $2);
           tree_add_child($$, $3);
       }
+    | LP error RP {
+        yyerrok;
+        $$ = tree_new("Exp", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $3);
+    }
+    | ID LP error RP {
+        yyerrok;
+        $$ = tree_new("Exp", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $4);
+    }
+    | Exp LB error RB {
+        yyerrok;
+        $$ = tree_new("Exp", NULL, $1->line);
+        tree_add_child($$, $1);
+        tree_add_child($$, $2);
+        tree_add_child($$, $4);
+    }
     ;
 
 Args:
