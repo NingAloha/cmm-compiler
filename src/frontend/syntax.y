@@ -509,13 +509,14 @@ Args:
 %%
 
 void yyerror(const char *message) {
+    (void)message;
+
     if (lexical_error) {
         return;
     }
 
     syntax_error = 1;
-    fprintf(stderr, "Error type B at Line %d: %s\n",
-        yylineno, message);
+    fprintf(stdout, "Error type B at Line %d: Syntax error.\n", yylineno);
 }
 
 #include "lex.yy.c"
