@@ -15,8 +15,8 @@ LEXER_SOURCE := $(BUILD_DIR)/lex.yy.c
 DRIVER_SOURCE := src/driver/main.c
 TREE_SOURCE := src/frontend/tree.c
 TARGET := $(BUILD_DIR)/parser
-TEST_RUNNER := tests/run_tests.sh
-TEST_MANIFEST := tests/expected.tsv
+STAGE_01_TEST_RUNNER := tests/stage-01/run_tests.sh
+STAGE_01_TEST_MANIFEST := tests/stage-01/expected.tsv
 REPORT_SOURCE := report.md
 REPORT_STYLE := report.css
 REPORT_HTML := $(BUILD_DIR)/report.html
@@ -24,7 +24,7 @@ REPORT_PDF := report.pdf
 PACKAGE_DIR := $(BUILD_DIR)/submission
 SUBMIT_ZIP := submit.zip
 
-.PHONY: all clean pack test $(REPORT_PDF)
+.PHONY: all clean pack test stage-01 $(REPORT_PDF)
 
 all: $(TARGET)
 
@@ -40,8 +40,10 @@ $(LEXER_SOURCE): $(LEXER_SPEC) $(PARSER_SOURCE) | $(BUILD_DIR)
 $(TARGET): $(PARSER_SOURCE) $(LEXER_SOURCE) $(TREE_SOURCE) $(DRIVER_SOURCE)
 	$(CC) $(CFLAGS) -o $@ $(PARSER_SOURCE) $(TREE_SOURCE) $(DRIVER_SOURCE)
 
-test: $(TARGET) $(TEST_RUNNER) $(TEST_MANIFEST)
-	@sh $(TEST_RUNNER) $(TARGET) $(TEST_MANIFEST)
+test: stage-01
+
+stage-01: $(TARGET) $(STAGE_01_TEST_RUNNER) $(STAGE_01_TEST_MANIFEST)
+	@sh $(STAGE_01_TEST_RUNNER) $(TARGET) $(STAGE_01_TEST_MANIFEST)
 
 $(REPORT_PDF): $(REPORT_SOURCE) $(REPORT_STYLE) | $(BUILD_DIR)
 	$(PANDOC) $(REPORT_SOURCE) --standalone --embed-resources --css $(REPORT_STYLE) -o $(REPORT_HTML)
