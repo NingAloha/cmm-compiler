@@ -4,9 +4,9 @@
 
 ## 当前阶段
 
-**Stage 01：词法分析、语法分析与语法树输出。**
+**Stage 02（进行中）：已完成类型系统、全局符号表及其单元测试；语义分析尚未接入解析器。**
 
-程序读取一个 C-- 源文件：无词法或语法错误时按先序遍历打印语法树；有错误时输出 A 类（词法）或 B 类（语法）错误信息，并以非零状态码结束。
+当前 `parser` 仍执行实验一行为：读取一个 C-- 源文件；无词法或语法错误时按先序遍历打印语法树；有错误时输出 A 类（词法）或 B 类（语法）错误信息，并以非零状态码结束。
 
 当前实现覆盖基础文法，并实现八/十六进制整数、指数形式浮点数及 `//`、`/* ... */` 注释支持。
 
@@ -24,13 +24,15 @@ make
 ./build/parser path/to/source.cmm
 ```
 
-运行全部测试：
+运行测试：
 
 ```bash
-make test
+make test-01  # 实验一：词法、语法与语法树测试
+make test-02  # 实验二：类型系统与符号表单元测试
+make test     # 运行全部阶段测试
 ```
 
-测试样例与判定规则见 [tests/README.md](tests/README.md)。
+测试样例与判定规则见[实验一测试说明](tests/stage-01/README.md)和[实验二测试说明](tests/stage-02/README.md)。
 
 ## 模块说明
 
@@ -40,3 +42,5 @@ make test
 | `src/frontend/syntax.y` | 按文法归约、处理优先级和语法错误恢复 | [语法分析器](docs/stage-01/syntax.md) |
 | `src/frontend/tree.c`、`tree.h` | 创建、连接、打印和释放语法树 | [语法树](docs/stage-01/tree.md) |
 | `src/driver/main.c` | 打开输入文件、驱动解析并决定输出与退出码 | [语法分析器中的流程说明](docs/stage-01/syntax.md#1-token-的语义值是树结点) |
+| `src/semantic/type.c`、`type.h` | 表示基础类型、数组、结构体和函数类型，并判断类型等价 | [实验二测试](tests/stage-02/README.md) |
+| `src/semantic/symbol.c`、`symbol.h` | 维护全局符号表，支持插入、查找、去重和清空 | [实验二测试](tests/stage-02/README.md) |
