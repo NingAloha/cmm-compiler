@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-static Type int_type = { .kind = TYPE_INT };
-static Type float_type = { .kind = TYPE_FLOAT };
-static Type error_type = { .kind = TYPE_ERROR };
+static Type int_type = {.kind = TYPE_INT};
+static Type float_type = {.kind = TYPE_FLOAT};
+static Type error_type = {.kind = TYPE_ERROR};
 
 static char *copy_string(const char *source) {
     if (source == NULL) {
@@ -23,17 +23,11 @@ static char *copy_string(const char *source) {
     return copy;
 }
 
-Type *type_int(void) {
-    return &int_type;
-}
+Type *type_int(void) { return &int_type; }
 
-Type *type_float(void) {
-    return &float_type;
-}
+Type *type_float(void) { return &float_type; }
 
-Type *type_error(void) {
-    return &error_type;
-}
+Type *type_error(void) { return &error_type; }
 
 Type *type_new_array(Type *element_type, size_t length) {
     Type *type = malloc(sizeof(*type));
@@ -142,30 +136,30 @@ int type_equal(const Type *left, const Type *right) {
     }
 
     switch (left->kind) {
-        case TYPE_INT:
-        case TYPE_FLOAT:
-            return 1;
+    case TYPE_INT:
+    case TYPE_FLOAT:
+        return 1;
 
-        case TYPE_ARRAY:
-            return type_equal(left->as.array.element_type, right->as.array.element_type);
+    case TYPE_ARRAY:
+        return type_equal(left->as.array.element_type,
+                          right->as.array.element_type);
 
-        case TYPE_STRUCT:
-            return left == right;
+    case TYPE_STRUCT:
+        return left == right;
 
-        case TYPE_FUNCTION:
-            return type_equal(left->as.function.return_type,
-                right->as.function.return_type)
-                && field_list_equal(left->as.function.parameters,
-                    right->as.function.parameters);
+    case TYPE_FUNCTION:
+        return type_equal(left->as.function.return_type,
+                          right->as.function.return_type) &&
+               field_list_equal(left->as.function.parameters,
+                                right->as.function.parameters);
 
-        case TYPE_ERROR:
-                    return 1;
+    case TYPE_ERROR:
+        return 1;
     }
 
     return 0;
 }
 
 int type_is_numeric(const Type *type) {
-    return type != NULL
-        && (type->kind == TYPE_INT || type->kind == TYPE_FLOAT);
+    return type != NULL && (type->kind == TYPE_INT || type->kind == TYPE_FLOAT);
 }

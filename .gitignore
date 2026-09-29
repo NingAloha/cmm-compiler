@@ -3,3 +3,4 @@ report.*
 submit.zip
 *.pdf
 *Makefile_ref
+.clang-format

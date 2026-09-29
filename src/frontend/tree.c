@@ -1,8 +1,8 @@
 #include "tree.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 static char *copy_string(const char *source) {
     if (source == NULL) {
