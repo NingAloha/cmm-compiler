@@ -4,6 +4,7 @@ BISON := bison
 PANDOC := pandoc
 WEASYPRINT := weasyprint
 ZIP := zip
+CLANG_FORMAT := clang-format
 
 CFLAGS := -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Isrc/frontend
 
@@ -30,7 +31,7 @@ REPORT_PDF := report.pdf
 PACKAGE_DIR := $(BUILD_DIR)/submission
 SUBMIT_ZIP := submit.zip
 
-.PHONY: all clean pack test test-01 test-02 $(REPORT_PDF)
+.PHONY: all clean pack format test test-01 test-02 $(REPORT_PDF)
 
 all: $(TARGET)
 
@@ -54,6 +55,10 @@ test-01: $(TARGET) $(STAGE_01_TEST_RUNNER) $(STAGE_01_TEST_MANIFEST)
 test-02: $(STAGE_02_TYPE_TEST) $(STAGE_02_SYMBOL_TEST)
 	@$(STAGE_02_TYPE_TEST)
 	@$(STAGE_02_SYMBOL_TEST)
+
+format:
+	@command -v $(CLANG_FORMAT) >/dev/null 2>&1 || { echo "clang-format is not installed. Run: brew install clang-format" >&2; exit 1; }
+	find src tests -type f \( -name '*.c' -o -name '*.h' \) -print0 | xargs -0 $(CLANG_FORMAT) -i
 
 $(STAGE_02_TYPE_TEST): $(STAGE_02_TYPE_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) src/semantic/type.h | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -Isrc/semantic -o $@ $(STAGE_02_TYPE_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE)
