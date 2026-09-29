@@ -9,11 +9,8 @@ int main(void) {
     symbol_table_init(&table);
     assert(table.head == NULL);
 
-    assert(symbol_table_insert(&table,
-        "count",
-        SYMBOL_VARIABLE,
-        type_int(),
-        3));
+    assert(
+        symbol_table_insert(&table, "count", SYMBOL_VARIABLE, type_int(), 3));
 
     const Symbol *count = symbol_table_find(&table, "count");
     assert(count != NULL);
@@ -21,11 +18,8 @@ int main(void) {
     assert(count->type == type_int());
     assert(count->line == 3);
 
-    assert(!symbol_table_insert(&table,
-        "count",
-        SYMBOL_VARIABLE,
-        type_float(),
-        8));
+    assert(!symbol_table_insert(&table, "count", SYMBOL_VARIABLE, type_float(),
+                                8));
 
     count = symbol_table_find(&table, "count");
     assert(count != NULL);
@@ -35,11 +29,8 @@ int main(void) {
     Type *average_type = type_new_function(type_float(), NULL);
     assert(average_type != NULL);
 
-    assert(symbol_table_insert(&table,
-        "average",
-        SYMBOL_FUNCTION,
-        average_type,
-        12));
+    assert(symbol_table_insert(&table, "average", SYMBOL_FUNCTION, average_type,
+                               12));
 
     const Symbol *average = symbol_table_find(&table, "average");
     assert(average != NULL);
@@ -49,11 +40,7 @@ int main(void) {
     Type *point_type = type_new_structure("Point", NULL);
     assert(point_type != NULL);
 
-    assert(symbol_table_insert(&table,
-                               "Point",
-                               SYMBOL_STRUCT,
-                               point_type,
-                               20));
+    assert(symbol_table_insert(&table, "Point", SYMBOL_STRUCT, point_type, 20));
 
     const Symbol *point = symbol_table_find(&table, "Point");
     assert(point != NULL);

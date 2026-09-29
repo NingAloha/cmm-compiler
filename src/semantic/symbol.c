@@ -59,7 +59,8 @@ const Symbol *symbol_table_find(const SymbolTable *table, const char *name) {
     return NULL;
 }
 
-int symbol_table_insert(SymbolTable *table, const char *name, SymbolKind kind, Type *type, int line) {
+int symbol_table_insert(SymbolTable *table, const char *name, SymbolKind kind,
+                        Type *type, int line) {
     if (table == NULL || name == NULL || type == NULL) {
         return 0;
     }

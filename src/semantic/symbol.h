@@ -29,11 +29,7 @@ void symbol_table_clear(SymbolTable *table);
 
 const Symbol *symbol_table_find(const SymbolTable *table, const char *name);
 
-int symbol_table_insert(SymbolTable *table,
-    const char *name,
-    SymbolKind kind,
-    Type *type,
-    int line
-);
+int symbol_table_insert(SymbolTable *table, const char *name, SymbolKind kind,
+                        Type *type, int line);
 
 #endif

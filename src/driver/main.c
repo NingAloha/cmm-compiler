@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include "../frontend/tree.h"
+#include <stdio.h>
 
 extern FILE *yyin;
 extern TreeNode *syntax_tree_root;
@@ -22,8 +22,8 @@ int main(int argc, char *argv[]) {
     int parse_status = yyparse();
     fclose(yyin);
 
-    if (parse_status == 0 && !lexical_error && !syntax_error
-        && syntax_tree_root != NULL) {
+    if (parse_status == 0 && !lexical_error && !syntax_error &&
+        syntax_tree_root != NULL) {
         tree_print(syntax_tree_root, 0);
     }
 
