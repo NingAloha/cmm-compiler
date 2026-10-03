@@ -1,0 +1,4 @@
+# source file|expected exit status|expected output pattern
+tests/stage-02/cases/valid_globals.cmm|0|ID: table
+tests/stage-02/cases/duplicate_global.cmm|1|Error type 3 at Line 2: Redefined variable\.
+tests/stage-02/cases/duplicate_from_list.cmm|1|Error type 3 at Line 2: Redefined variable\.
