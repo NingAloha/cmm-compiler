@@ -133,3 +133,113 @@ static Type *analyze_specifier(SemanticContext *context, const TreeNode *node) {
 
 static void analyze_ext_dec_list(SemanticContext *context, const TreeNode *node,
                                  Type *base_type);
+
+static void analyze_ext_def(SemanticContext *context, const TreeNode *node) {
+    if (context == NULL || node == NULL || !node_is(node, "ExtDef")) {
+        return;
+    }
+
+    const TreeNode *child_0 = child_at(node, 0);
+    if (child_0 == NULL) {
+        return;
+    }
+
+    Type *base_type = analyze_specifier(context, child_0);
+
+    const TreeNode *child_1 = child_at(node, 1);
+    if (child_1 == NULL) {
+        return;
+    }
+
+    if (node_is(child_1, "ExtDecList")) {
+        analyze_ext_dec_list(context, child_1, base_type);
+    }
+
+    return;
+}
+
+static const TreeNode *var_dec_identifier(const TreeNode *node) {
+    if (node == NULL || !node_is(node, "VarDec")) {
+        return NULL;
+    }
+
+    const TreeNode *child_0 = child_at(node, 0);
+    if (child_0 == NULL) {
+        return NULL;
+    }
+
+    if (node_is(child_0, "ID")) {
+        return child_0;
+    }
+
+    if (node_is(child_0, "VarDec")) {
+        return var_dec_identifier(child_0);
+    }
+
+    return NULL;
+}
+
+static Type *analyze_var_dec(const TreeNode *node, Type *base_type) {
+    if (node == NULL || base_type == NULL || !node_is(node, "VarDec")) {
+        return type_error();
+    }
+
+    const TreeNode *child_0 = child_at(node, 0);
+    if (child_0 == NULL) {
+        return type_error();
+    }
+
+    if (node_is(child_0, "ID")) {
+        return base_type;
+    }
+
+    if (node_is(child_0, "VarDec")) {
+        Type *inner_type = analyze_var_dec(child_0, base_type);
+
+        if (inner_type == type_error()) {
+            return type_error();
+        }
+
+        const TreeNode *child_2 = child_at(node, 2);
+
+        if (!node_is(child_2, "INT") || child_2->text == NULL) {
+            return type_error();
+        }
+
+        size_t length = strtoul(child_2->text, NULL, 10);
+        Type *result = type_new_array(inner_type, length);
+        if (result == NULL) {
+            return type_error();
+        }
+
+        return result;
+    }
+
+    return type_error();
+}
+
+static void analyze_ext_dec_list(SemanticContext *context, const TreeNode *node,
+                                 Type *base_type) {
+    if (context == NULL || node == NULL || base_type == NULL ||
+        !node_is(node, "ExtDecList")) {
+        return;
+    }
+
+    const TreeNode *var_dec = child_at(node, 0);
+    if (var_dec != NULL) {
+        const TreeNode *id = var_dec_identifier(var_dec);
+        Type *type = analyze_var_dec(var_dec, base_type);
+
+        if (id != NULL && id->text != NULL && type != NULL &&
+            type != type_error()) {
+            if (symbol_table_find(&context->symbols, id->text) != NULL) {
+                report_error(context, 3, id->line, "Redefined variable");
+            } else {
+                symbol_table_insert(&context->symbols, id->text,
+                                    SYMBOL_VARIABLE, type, id->line);
+            }
+        }
+    }
+
+    analyze_ext_dec_list(context, child_at(node, 2), base_type);
+}

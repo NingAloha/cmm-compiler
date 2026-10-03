@@ -1,4 +1,5 @@
 #include "../frontend/tree.h"
+#include "../semantic/semantic.h"
 #include <stdio.h>
 
 extern FILE *yyin;
@@ -22,11 +23,18 @@ int main(int argc, char *argv[]) {
     int parse_status = yyparse();
     fclose(yyin);
 
+    int semantic_errors = 0;
+
     if (parse_status == 0 && !lexical_error && !syntax_error &&
         syntax_tree_root != NULL) {
         tree_print(syntax_tree_root, 0);
+        semantic_errors = semantic_analyze(syntax_tree_root);
     }
 
     tree_free(syntax_tree_root);
-    return (parse_status != 0 || lexical_error || syntax_error) ? 1 : 0;
+
+    return (parse_status != 0 || lexical_error || syntax_error ||
+            semantic_errors != 0)
+               ? 1
+               : 0;
 }
