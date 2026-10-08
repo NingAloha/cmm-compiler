@@ -98,3 +98,5 @@ pack: $(REPORT_PDF)
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -f $(ROOT_TARGET)
+	rm -rf $(REPORT_PDF)
+	rm -rf $(SUBMIT_ZIP)

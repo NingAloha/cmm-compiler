@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-**Stage 02（进行中）：已完成类型系统、符号表和必做语义检查，并已接入解析器。**
+**Stage 02：已完成类型系统、符号表和错误类型 1--17 的语义检查，并已接入解析器；符号表还支持选做 2.2 的嵌套作用域。**
 
 默认调用 `parser` 执行实验二语义检查：正确程序不输出，错误程序只输出对应的 `Error type` 信息。传入 `--tree` 时保留实验一行为，按先序遍历打印语法树。
 
@@ -43,5 +43,7 @@ make test     # 运行全部阶段测试
 | `src/frontend/syntax.y` | 按文法归约、处理优先级和语法错误恢复 | [语法分析器](docs/stage-01/syntax.md) |
 | `src/frontend/tree.c`、`tree.h` | 创建、连接、打印和释放语法树 | [语法树](docs/stage-01/tree.md) |
 | `src/driver/main.c` | 打开输入文件、驱动解析并决定输出与退出码 | [语法分析器中的流程说明](docs/stage-01/syntax.md#1-token-的语义值是树结点) |
-| `src/semantic/type.c`、`type.h` | 表示基础类型、数组、结构体和函数类型，并判断类型等价 | [实验二测试](tests/stage-02/README.md) |
-| `src/semantic/symbol.c`、`symbol.h` | 维护全局符号表，支持插入、查找、去重和清空 | [实验二测试](tests/stage-02/README.md) |
+| `src/semantic/type.c`、`type.h` | 表示基础类型、数组、结构体和函数类型，并判断类型等价 | [类型系统](docs/stage-02/type.md) |
+| `src/semantic/symbol.c`、`symbol.h` | 维护变量、函数和结构体符号，支持嵌套作用域 | [符号表](docs/stage-02/symbol.md) |
+| `src/semantic/semantic.c`、`semantic.h` | 遍历 AST、进行类型检查并输出错误类型 1--17 | [语义分析](docs/stage-02/semantic.md) |
+| `tests/stage-02/` | 运行类型、符号表和端到端语义回归测试 | [实验二测试](tests/stage-02/README.md) |
