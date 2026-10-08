@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Storage helpers */
+
 static char *copy_string(const char *source) {
     if (source == NULL) {
         return NULL;
@@ -18,6 +20,8 @@ static char *copy_string(const char *source) {
 
     return copy;
 }
+
+/* Construction */
 
 TreeNode *tree_new(const char *name, const char *text, int line) {
     TreeNode *node = malloc(sizeof(*node));
@@ -49,6 +53,8 @@ void tree_add_child(TreeNode *parent, TreeNode *child) {
 
     parent->last_child = child;
 }
+
+/* Traversal and cleanup */
 
 void tree_print(const TreeNode *node, int depth) {
     if (node == NULL) {

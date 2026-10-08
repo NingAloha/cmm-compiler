@@ -10,8 +10,13 @@ typedef struct TreeNode {
     struct TreeNode *next_sibling;
 } TreeNode;
 
+/* Construction */
+
 TreeNode *tree_new(const char *name, const char *text, int line);
 void tree_add_child(TreeNode *parent, TreeNode *child);
+
+/* Traversal and cleanup */
+
 void tree_print(const TreeNode *node, int depth);
 void tree_free(TreeNode *node);
 

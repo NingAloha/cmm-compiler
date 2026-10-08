@@ -26,17 +26,25 @@ struct SymbolTable {
     int scope_depth;
 };
 
+/* Lifetime */
+
 void symbol_table_init(SymbolTable *table);
 void symbol_table_clear(SymbolTable *table);
 
+/* Lookup */
+
+const Symbol *symbol_table_find_current(const SymbolTable *table,
+                                        const char *name);
 const Symbol *symbol_table_find(const SymbolTable *table, const char *name);
+
+/* Insertion */
 
 int symbol_table_insert(SymbolTable *table, const char *name, SymbolKind kind,
                         Type *type, int line);
 
+/* Scope management */
+
 void symbol_table_enter_scope(SymbolTable *table);
 void symbol_table_leave_scope(SymbolTable *table);
 
-const Symbol *symbol_table_find_current(const SymbolTable *table,
-                                        const char *name);
 #endif

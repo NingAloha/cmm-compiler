@@ -1,6 +1,7 @@
+#include <stdio.h>
+
 #include "../frontend/tree.h"
 #include "../semantic/semantic.h"
-#include <stdio.h>
 
 extern FILE *yyin;
 extern TreeNode *syntax_tree_root;

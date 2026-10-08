@@ -3,6 +3,8 @@
 
 #include "../frontend/tree.h"
 
+/* Analyze a parsed program and return the number of semantic errors. */
+
 int semantic_analyze(const TreeNode *root);
 
 #endif

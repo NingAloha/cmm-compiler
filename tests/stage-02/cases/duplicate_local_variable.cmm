@@ -1,0 +1,5 @@
+int test() {
+    int value;
+    float value;
+    return 0;
+}

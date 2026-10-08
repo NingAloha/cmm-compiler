@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Storage helpers */
+
 static char *copy_string(const char *source) {
     if (source == NULL) {
         return NULL;
@@ -17,6 +19,8 @@ static char *copy_string(const char *source) {
 
     return copy;
 }
+
+/* Lifetime */
 
 void symbol_table_init(SymbolTable *table) {
     if (table != NULL) {
@@ -42,6 +46,8 @@ void symbol_table_clear(SymbolTable *table) {
     table->head = NULL;
     table->scope_depth = 0;
 }
+
+/* Lookup */
 
 const Symbol *symbol_table_find_current(const SymbolTable *table,
                                         const char *name) {
@@ -81,6 +87,8 @@ const Symbol *symbol_table_find(const SymbolTable *table, const char *name) {
 
     return result;
 }
+
+/* Insertion */
 
 int symbol_table_insert(SymbolTable *table, const char *name, SymbolKind kind,
                         Type *type, int line) {
@@ -122,6 +130,8 @@ int symbol_table_insert(SymbolTable *table, const char *name, SymbolKind kind,
     tail->next = new_symbol;
     return 1;
 }
+
+/* Scope management */
 
 void symbol_table_enter_scope(SymbolTable *table) {
     if (table != NULL) {

@@ -1,5 +1,6 @@
 #ifndef SEMANTIC_TYPE_H
 #define SEMANTIC_TYPE_H
+
 #include <stddef.h>
 
 typedef enum TypeKind {
@@ -42,9 +43,13 @@ struct Type {
     } as;
 };
 
+/* Shared primitive types */
+
 Type *type_int(void);
 Type *type_float(void);
 Type *type_error(void);
+
+/* Type and field construction */
 
 Type *type_new_array(Type *element_type, size_t length);
 Type *type_new_structure(const char *tag, Field *fields);
@@ -52,6 +57,8 @@ Type *type_new_function(Type *return_type, Field *parameters);
 
 Field *field_new(const char *name, Type *type, int line);
 void field_append(Field **head, Field *field);
+
+/* Type predicates and comparison */
 
 int type_equal(const Type *left, const Type *right);
 int type_is_numeric(const Type *type);

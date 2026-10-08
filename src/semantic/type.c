@@ -8,6 +8,8 @@ static Type int_type = {.kind = TYPE_INT};
 static Type float_type = {.kind = TYPE_FLOAT};
 static Type error_type = {.kind = TYPE_ERROR};
 
+/* Storage helpers */
+
 static char *copy_string(const char *source) {
     if (source == NULL) {
         return NULL;
@@ -23,11 +25,15 @@ static char *copy_string(const char *source) {
     return copy;
 }
 
+/* Shared primitive types */
+
 Type *type_int(void) { return &int_type; }
 
 Type *type_float(void) { return &float_type; }
 
 Type *type_error(void) { return &error_type; }
+
+/* Type and field construction */
 
 Type *type_new_array(Type *element_type, size_t length) {
     Type *type = malloc(sizeof(*type));
@@ -122,6 +128,8 @@ static int field_list_equal(const Field *left, const Field *right) {
 
     return left == NULL && right == NULL;
 }
+
+/* Type predicates and comparison */
 
 int type_equal(const Type *left, const Type *right) {
     if (left == NULL || right == NULL) {

@@ -4,3 +4,5 @@ tests/stage-02/cases/duplicate_global.cmm|1|Error type 3 at Line 2: Redefined va
 tests/stage-02/cases/duplicate_from_list.cmm|1|Error type 3 at Line 2: Redefined variable\.
 tests/stage-02/cases/duplicate_function.cmm|1|Error type 4 at Line 5: Redefined function\.
 tests/stage-02/cases/duplicate_function_with_parameters.cmm|1|Error type 4 at Line 5: Redefined function\.
+tests/stage-02/cases/duplicate_parameter.cmm|1|Error type 3 at Line 1: Redefined variable\.
+tests/stage-02/cases/duplicate_local_variable.cmm|1|Error type 3 at Line 3: Redefined variable\.
