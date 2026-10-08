@@ -1,0 +1,4 @@
+int main() {
+    struct Missing value;
+    return 0;
+}

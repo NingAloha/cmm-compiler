@@ -1,0 +1,17 @@
+int main() {
+    int total;
+
+    if (total < 3) {
+        int inner;
+        inner = 1;
+    } else {
+        int inner;
+        inner = 2;
+    }
+
+    while (total < 5) {
+        total = total + 1;
+    }
+
+    return total;
+}

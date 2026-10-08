@@ -1,0 +1,10 @@
+struct Pair {
+    int left;
+    float right;
+};
+
+int main() {
+    struct Pair pair;
+    pair.left = 1;
+    return pair.left;
+}

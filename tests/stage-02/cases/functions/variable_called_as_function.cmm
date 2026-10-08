@@ -1,0 +1,5 @@
+int main() {
+    int number;
+    number();
+    return 0;
+}

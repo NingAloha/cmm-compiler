@@ -1,0 +1,5 @@
+int main() {
+    int count;
+    count = 1.0;
+    return 0;
+}

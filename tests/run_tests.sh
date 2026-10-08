@@ -2,13 +2,14 @@
 
 set -u
 
-if [ "$#" -ne 2 ]; then
-    printf '%s\n' "Usage: $0 <parser> <manifest>" >&2
+if [ "$#" -ne 2 ] && [ "$#" -ne 3 ]; then
+    printf '%s\n' "Usage: $0 <parser> <manifest> [--semantic]" >&2
     exit 2
 fi
 
 parser=$1
 manifest=$2
+mode=${3-}
 stage_name=$(basename "$(dirname "$manifest")")
 passed=0
 total=0
@@ -24,7 +25,11 @@ while IFS='|' read -r test_file expected_status expected_pattern; do
     total=$((total + 1))
     output_file=$(mktemp "${TMPDIR:-/tmp}/cmm-compiler-test.XXXXXX") || exit 2
 
-    "$parser" "$test_file" >"$output_file" 2>&1
+    if [ "$mode" = "--semantic" ]; then
+        "$parser" --semantic "$test_file" >"$output_file" 2>&1
+    else
+        "$parser" "$test_file" >"$output_file" 2>&1
+    fi
     actual_status=$?
 
     if [ "$actual_status" -eq "$expected_status" ] &&

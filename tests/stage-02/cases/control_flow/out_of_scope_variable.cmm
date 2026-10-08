@@ -1,0 +1,9 @@
+int main() {
+    if (1) {
+        int hidden;
+        hidden = 1;
+    }
+
+    hidden;
+    return 0;
+}

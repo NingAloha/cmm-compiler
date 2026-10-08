@@ -1,0 +1,9 @@
+struct Pair {
+    int left;
+    float right;
+};
+
+int main() {
+    struct Pair pair;
+    return 0;
+}

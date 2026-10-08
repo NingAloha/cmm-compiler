@@ -63,7 +63,7 @@ test-02: $(STAGE_02_TYPE_TEST) $(STAGE_02_SYMBOL_TEST) $(TARGET) \
 	$(TEST_RUNNER) $(STAGE_02_SEMANTIC_MANIFEST)
 	@$(STAGE_02_TYPE_TEST)
 	@$(STAGE_02_SYMBOL_TEST)
-	@sh $(TEST_RUNNER) $(TARGET) $(STAGE_02_SEMANTIC_MANIFEST)
+	@sh $(TEST_RUNNER) $(TARGET) $(STAGE_02_SEMANTIC_MANIFEST) --semantic
 
 format:
 	@command -v $(CLANG_FORMAT) >/dev/null 2>&1 || { echo "clang-format is not installed. Run: brew install clang-format" >&2; exit 1; }

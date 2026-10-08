@@ -96,6 +96,25 @@ static void analyze_dec_list(SemanticContext *context, const TreeNode *node,
                              Type *base_type);
 static void analyze_dec(SemanticContext *context, const TreeNode *node,
                         Type *base_type);
+static void analyze_stmt_list(SemanticContext *context, const TreeNode *node);
+static void analyze_stmt(SemanticContext *context, const TreeNode *node);
+static Type *analyze_exp(SemanticContext *context, const TreeNode *node);
+static int exp_is_lvalue(const TreeNode *node);
+static int arguments_match(SemanticContext *context, const TreeNode *node,
+                           const Field *parameters, int *has_error);
+static void analyze_condition(SemanticContext *context, const TreeNode *node);
+static Type *analyze_struct_specifier(SemanticContext *context,
+                                      const TreeNode *node);
+static void analyze_struct_def_list(SemanticContext *context,
+                                    const TreeNode *node, Field **fields);
+static void analyze_struct_def(SemanticContext *context, const TreeNode *node,
+                               Field **fields);
+static void analyze_struct_dec_list(SemanticContext *context,
+                                    const TreeNode *node, Type *base_type,
+                                    Field **fields);
+static void analyze_struct_dec(SemanticContext *context, const TreeNode *node,
+                               Type *base_type, Field **fields);
+static int struct_has_field(const Field *fields, const char *name);
 
 int semantic_analyze(const TreeNode *root) {
     if (root == NULL) {
@@ -168,7 +187,160 @@ static Type *analyze_specifier(SemanticContext *context, const TreeNode *node) {
         }
     }
 
+    if (node_is(child_0, "StructSpecifier")) {
+        return analyze_struct_specifier(context, child_0);
+    }
+
     return type_error();
+}
+
+static int struct_has_field(const Field *fields, const char *name) {
+    if (name == NULL) {
+        return 0;
+    }
+
+    const Field *current = fields;
+
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+            return 1;
+        }
+
+        current = current->next;
+    }
+
+    return 0;
+}
+
+static void analyze_struct_dec(SemanticContext *context, const TreeNode *node,
+                               Type *base_type, Field **fields) {
+    if (context == NULL || node == NULL || base_type == NULL ||
+        fields == NULL || !node_is(node, "Dec")) {
+        return;
+    }
+
+    const TreeNode *var_dec = child_at(node, 0);
+    const TreeNode *id = var_dec_identifier(var_dec);
+    Type *type = analyze_var_dec(var_dec, base_type);
+
+    if (id == NULL || id->text == NULL || type == type_error()) {
+        return;
+    }
+
+    if (struct_has_field(*fields, id->text)) {
+        report_error(context, 15, id->line, "Redefined field");
+        return;
+    }
+
+    Field *field = field_new(id->text, type, id->line);
+
+    if (field != NULL) {
+        field_append(fields, field);
+    }
+}
+
+static void analyze_struct_dec_list(SemanticContext *context,
+                                    const TreeNode *node, Type *base_type,
+                                    Field **fields) {
+    if (context == NULL || node == NULL || base_type == NULL ||
+        fields == NULL || !node_is(node, "DecList")) {
+        return;
+    }
+
+    analyze_struct_dec(context, child_at(node, 0), base_type, fields);
+    analyze_struct_dec_list(context, child_at(node, 2), base_type, fields);
+}
+
+static void analyze_struct_def(SemanticContext *context, const TreeNode *node,
+                               Field **fields) {
+    if (context == NULL || node == NULL || fields == NULL ||
+        !node_is(node, "Def")) {
+        return;
+    }
+
+    Type *base_type = analyze_specifier(context, child_at(node, 0));
+
+    if (base_type == type_error()) {
+        return;
+    }
+
+    analyze_struct_dec_list(context, find_child(node, "DecList"), base_type,
+                            fields);
+}
+
+static void analyze_struct_def_list(SemanticContext *context,
+                                    const TreeNode *node, Field **fields) {
+    if (context == NULL || node == NULL || fields == NULL ||
+        !node_is(node, "DefList")) {
+        return;
+    }
+
+    analyze_struct_def(context, child_at(node, 0), fields);
+    analyze_struct_def_list(context, child_at(node, 1), fields);
+}
+
+static Type *analyze_struct_specifier(SemanticContext *context,
+                                      const TreeNode *node) {
+    if (context == NULL || node == NULL || !node_is(node, "StructSpecifier")) {
+        return type_error();
+    }
+
+    const TreeNode *child_0 = child_at(node, 0);
+    const TreeNode *child_1 = child_at(node, 1);
+
+    if (!node_is(child_0, "STRUCT")) {
+        return type_error();
+    }
+
+    if (node_is(child_1, "Tag")) {
+        const TreeNode *id = child_at(child_1, 0);
+
+        if (!node_is(id, "ID") || id->text == NULL) {
+            return type_error();
+        }
+
+        const Symbol *symbol = symbol_table_find(&context->symbols, id->text);
+
+        if (symbol == NULL || symbol->kind != SYMBOL_STRUCT) {
+            report_error(context, 17, id->line, "Undefined structure");
+            return type_error();
+        }
+
+        return symbol->type;
+    }
+
+    const TreeNode *tag_id = NULL;
+
+    if (node_is(child_1, "OptTag")) {
+        tag_id = child_at(child_1, 0);
+
+        if (!node_is(tag_id, "ID") || tag_id->text == NULL) {
+            return type_error();
+        }
+
+        if (symbol_table_find(&context->symbols, tag_id->text) != NULL) {
+            report_error(context, 16, tag_id->line, "Duplicated name");
+            return type_error();
+        }
+    }
+
+    Type *type = type_new_structure(tag_id == NULL ? NULL : tag_id->text, NULL);
+
+    if (type == NULL) {
+        return type_error();
+    }
+
+    if (tag_id != NULL &&
+        !symbol_table_insert(&context->symbols, tag_id->text, SYMBOL_STRUCT,
+                            type, tag_id->line)) {
+        return type_error();
+    }
+
+    Field *fields = NULL;
+    analyze_struct_def_list(context, find_child(node, "DefList"), &fields);
+    type->as.structure.fields = fields;
+
+    return type;
 }
 
 static void analyze_ext_def(SemanticContext *context, const TreeNode *node) {
@@ -324,11 +496,23 @@ static void analyze_dec(SemanticContext *context, const TreeNode *node,
 
     if (symbol_table_find_current(&context->symbols, id->text) != NULL) {
         report_error(context, 3, id->line, "Redefined variable");
-        return;
+    } else {
+        symbol_table_insert(&context->symbols, id->text, SYMBOL_VARIABLE, type,
+                            id->line);
     }
 
-    symbol_table_insert(&context->symbols, id->text, SYMBOL_VARIABLE, type,
-                        id->line);
+    const TreeNode *assign_op = child_at(node, 1);
+    const TreeNode *initializer = child_at(node, 2);
+
+    if (node_is(assign_op, "ASSIGNOP")) {
+        Type *initializer_type = analyze_exp(context, initializer);
+
+        if (initializer_type != type_error() &&
+            !type_equal(type, initializer_type)) {
+            report_error(context, 5, assign_op->line,
+                         "Type mismatched for assignment");
+        }
+    }
 }
 
 static void analyze_dec_list(SemanticContext *context, const TreeNode *node,
@@ -500,4 +684,367 @@ static void analyze_comp_st(SemanticContext *context, const TreeNode *node) {
     if (def_list != NULL) {
         analyze_def_list(context, def_list);
     }
+
+    const TreeNode *stmt_list = find_child(node, "StmtList");
+
+    if (stmt_list != NULL) {
+        analyze_stmt_list(context, stmt_list);
+    }
+}
+
+static void analyze_stmt_list(SemanticContext *context, const TreeNode *node) {
+    if (context == NULL || node == NULL || !node_is(node, "StmtList")) {
+        return;
+    }
+
+    const TreeNode *stmt = child_at(node, 0);
+
+    if (stmt != NULL) {
+        analyze_stmt(context, stmt);
+    }
+
+    analyze_stmt_list(context, child_at(node, 1));
+}
+
+static void analyze_condition(SemanticContext *context, const TreeNode *node) {
+    Type *condition_type = analyze_exp(context, node);
+
+    if (condition_type == type_error()) {
+        return;
+    }
+
+    if (!type_equal(condition_type, type_int())) {
+        report_error(context, 7, node->line, "Type mismatched for operands");
+    }
+}
+
+static void analyze_stmt(SemanticContext *context, const TreeNode *node) {
+    if (context == NULL || node == NULL || !node_is(node, "Stmt")) {
+        return;
+    }
+
+    const TreeNode *child_0 = child_at(node, 0);
+
+    if (node_is(child_0, "Exp")) {
+        analyze_exp(context, child_0);
+    } else if (node_is(child_0, "RETURN")) {
+        Type *returned_type = analyze_exp(context, child_at(node, 1));
+
+        if (returned_type == type_error() ||
+            context->current_return_type == NULL) {
+            return;
+        }
+
+        if (!type_equal(returned_type, context->current_return_type)) {
+            report_error(context, 8, child_0->line,
+                         "Type mismatched for return");
+        }
+    } else if (node_is(child_0, "CompSt")) {
+        symbol_table_enter_scope(&context->symbols);
+        analyze_comp_st(context, child_0);
+        symbol_table_leave_scope(&context->symbols);
+    } else if (node_is(child_0, "WHILE")) {
+        analyze_condition(context, child_at(node, 2));
+        analyze_stmt(context, child_at(node, 4));
+    } else if (node_is(child_0, "IF")) {
+        analyze_condition(context, child_at(node, 2));
+        analyze_stmt(context, child_at(node, 4));
+
+        if (node_is(child_at(node, 5), "ELSE")) {
+            analyze_stmt(context, child_at(node, 6));
+        }
+    }
+}
+
+static int exp_is_lvalue(const TreeNode *node) {
+    if (node == NULL || !node_is(node, "Exp")) {
+        return 0;
+    }
+
+    const TreeNode *child_0 = child_at(node, 0);
+    const TreeNode *child_1 = child_at(node, 1);
+    const TreeNode *child_2 = child_at(node, 2);
+    const TreeNode *child_3 = child_at(node, 3);
+
+    if (node_is(child_0, "ID") && child_1 == NULL) {
+        return 1;
+    }
+
+    return node_is(child_0, "Exp") && node_is(child_1, "LB") &&
+           node_is(child_2, "Exp") && node_is(child_3, "RB") &&
+           exp_is_lvalue(child_0);
+}
+
+static int arguments_match(SemanticContext *context, const TreeNode *node,
+                           const Field *parameters, int *has_error) {
+    if (context == NULL || node == NULL || parameters == NULL ||
+        has_error == NULL || !node_is(node, "Args")) {
+        return 0;
+    }
+
+    const TreeNode *argument_node = child_at(node, 0);
+    Type *argument_type = analyze_exp(context, argument_node);
+
+    if (argument_type == type_error()) {
+        *has_error = 1;
+        return 0;
+    }
+
+    if (!type_equal(argument_type, parameters->type)) {
+        return 0;
+    }
+
+    const TreeNode *child_1 = child_at(node, 1);
+
+    if (child_1 == NULL) {
+        return parameters->next == NULL;
+    }
+
+    if (!node_is(child_1, "COMMA")) {
+        return 0;
+    }
+
+    return arguments_match(context, child_at(node, 2), parameters->next,
+                           has_error);
+}
+
+static Type *analyze_exp(SemanticContext *context, const TreeNode *node) {
+    if (context == NULL || node == NULL || !node_is(node, "Exp")) {
+        return type_error();
+    }
+
+    const TreeNode *child_0 = child_at(node, 0);
+    const TreeNode *child_1 = child_at(node, 1);
+    const TreeNode *child_2 = child_at(node, 2);
+    const TreeNode *child_3 = child_at(node, 3);
+
+    if (node_is(child_0, "ID") && child_1 == NULL) {
+        if (child_0->text == NULL) {
+            return type_error();
+        }
+
+        const Symbol *symbol =
+            symbol_table_find(&context->symbols, child_0->text);
+
+        if (symbol == NULL || symbol->kind != SYMBOL_VARIABLE) {
+            report_error(context, 1, child_0->line, "Undefined variable");
+            return type_error();
+        }
+
+        return symbol->type;
+    }
+
+    if (node_is(child_0, "INT") && child_1 == NULL) {
+        return type_int();
+    }
+
+    if (node_is(child_0, "FLOAT") && child_1 == NULL) {
+        return type_float();
+    }
+
+    if (node_is(child_0, "ID") && node_is(child_1, "LP") &&
+        node_is(child_2, "RP")) {
+        if (child_0->text == NULL) {
+            return type_error();
+        }
+
+        const Symbol *symbol =
+            symbol_table_find(&context->symbols, child_0->text);
+
+        if (symbol == NULL) {
+            report_error(context, 2, child_0->line, "Undefined function");
+            return type_error();
+        }
+
+        if (symbol->kind != SYMBOL_FUNCTION || symbol->type == NULL ||
+            symbol->type->kind != TYPE_FUNCTION) {
+            report_error(context, 11, child_0->line, "Not a function");
+            return type_error();
+        }
+
+        if (symbol->type->as.function.parameters != NULL) {
+            report_error(context, 9, child_0->line,
+                         "Function is not applicable for arguments");
+            return type_error();
+        }
+
+        return symbol->type->as.function.return_type;
+    }
+
+    if (node_is(child_0, "ID") && node_is(child_1, "LP") &&
+        node_is(child_2, "Args") && node_is(child_3, "RP")) {
+        if (child_0->text == NULL) {
+            return type_error();
+        }
+
+        const Symbol *symbol =
+            symbol_table_find(&context->symbols, child_0->text);
+
+        if (symbol == NULL) {
+            report_error(context, 2, child_0->line, "Undefined function");
+            return type_error();
+        }
+
+        if (symbol->kind != SYMBOL_FUNCTION || symbol->type == NULL ||
+            symbol->type->kind != TYPE_FUNCTION) {
+            report_error(context, 11, child_0->line, "Not a function");
+            return type_error();
+        }
+
+        int has_error = 0;
+
+        if (!arguments_match(context, child_2,
+                             symbol->type->as.function.parameters,
+                             &has_error)) {
+            if (!has_error) {
+                report_error(context, 9, child_0->line,
+                             "Function is not applicable for arguments");
+            }
+
+            return type_error();
+        }
+
+        return symbol->type->as.function.return_type;
+    }
+
+    if (node_is(child_0, "Exp") && node_is(child_1, "LB") &&
+        node_is(child_2, "Exp") && node_is(child_3, "RB")) {
+        Type *array_type = analyze_exp(context, child_0);
+        Type *index_type = analyze_exp(context, child_2);
+
+        if (array_type == type_error() || index_type == type_error()) {
+            return type_error();
+        }
+
+        if (array_type->kind != TYPE_ARRAY) {
+            report_error(context, 10, node->line, "Not an array");
+            return type_error();
+        }
+
+        if (!type_equal(index_type, type_int())) {
+            report_error(context, 12, node->line,
+                         "Array index is not an integer");
+            return type_error();
+        }
+
+        return array_type->as.array.element_type;
+    }
+
+    if (node_is(child_0, "LP") && node_is(child_1, "Exp") &&
+        node_is(child_2, "RP")) {
+        return analyze_exp(context, child_1);
+    }
+
+    if ((node_is(child_0, "MINUS") || node_is(child_0, "NOT")) &&
+        node_is(child_1, "Exp") && child_2 == NULL) {
+        Type *operand_type = analyze_exp(context, child_1);
+
+        if (operand_type == type_error()) {
+            return type_error();
+        }
+
+        if (node_is(child_0, "MINUS")) {
+            if (!type_is_numeric(operand_type)) {
+                report_error(context, 7, node->line,
+                             "Type mismatched for operands");
+                return type_error();
+            }
+
+            return operand_type;
+        }
+
+        if (!type_equal(operand_type, type_int())) {
+            report_error(context, 7, node->line,
+                         "Type mismatched for operands");
+            return type_error();
+        }
+
+        return type_int();
+    }
+
+    if (node_is(child_0, "Exp") && node_is(child_1, "RELOP") &&
+        node_is(child_2, "Exp")) {
+        Type *left_type = analyze_exp(context, child_0);
+        Type *right_type = analyze_exp(context, child_2);
+
+        if (left_type == type_error() || right_type == type_error()) {
+            return type_error();
+        }
+
+        if (!type_is_numeric(left_type) || !type_is_numeric(right_type) ||
+            !type_equal(left_type, right_type)) {
+            report_error(context, 7, node->line,
+                         "Type mismatched for operands");
+            return type_error();
+        }
+
+        return type_int();
+    }
+
+    if (node_is(child_0, "Exp") &&
+        (node_is(child_1, "AND") || node_is(child_1, "OR")) &&
+        node_is(child_2, "Exp")) {
+        Type *left_type = analyze_exp(context, child_0);
+        Type *right_type = analyze_exp(context, child_2);
+
+        if (left_type == type_error() || right_type == type_error()) {
+            return type_error();
+        }
+
+        if (!type_equal(left_type, type_int()) ||
+            !type_equal(right_type, type_int())) {
+            report_error(context, 7, node->line,
+                         "Type mismatched for operands");
+            return type_error();
+        }
+
+        return type_int();
+    }
+
+    if (node_is(child_0, "Exp") && node_is(child_1, "ASSIGNOP") &&
+        node_is(child_2, "Exp")) {
+        Type *left_type = analyze_exp(context, child_0);
+        Type *right_type = analyze_exp(context, child_2);
+
+        if (left_type == type_error() || right_type == type_error()) {
+            return type_error();
+        }
+
+        if (!exp_is_lvalue(child_0)) {
+            report_error(
+                context, 6, node->line,
+                "The left-hand side of an assignment must be a variable");
+            return type_error();
+        }
+
+        if (!type_equal(left_type, right_type)) {
+            report_error(context, 5, node->line,
+                         "Type mismatched for assignment");
+            return type_error();
+        }
+
+        return left_type;
+    }
+
+    if (node_is(child_0, "Exp") && node_is(child_2, "Exp") &&
+        (node_is(child_1, "PLUS") || node_is(child_1, "MINUS") ||
+         node_is(child_1, "STAR") || node_is(child_1, "DIV"))) {
+        Type *left_type = analyze_exp(context, child_0);
+        Type *right_type = analyze_exp(context, child_2);
+
+        if (left_type == type_error() || right_type == type_error()) {
+            return type_error();
+        }
+
+        if (!type_is_numeric(left_type) || !type_is_numeric(right_type) ||
+            !type_equal(left_type, right_type)) {
+            report_error(context, 7, node->line,
+                         "Type mismatched for operands");
+            return type_error();
+        }
+
+        return left_type;
+    }
+
+    return type_error();
 }

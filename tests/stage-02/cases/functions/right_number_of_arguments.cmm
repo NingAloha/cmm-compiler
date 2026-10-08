@@ -1,0 +1,8 @@
+int twice(int value) {
+    return value;
+}
+
+int main() {
+    twice(3);
+    return 0;
+}
