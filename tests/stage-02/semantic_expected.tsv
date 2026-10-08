@@ -29,3 +29,6 @@ tests/stage-02/cases/structures/valid_struct_declaration.cmm|0|^Program \(1\)$
 tests/stage-02/cases/structures/duplicate_struct_field.cmm|1|Error type 15 at Line 3: Redefined field\.
 tests/stage-02/cases/structures/duplicate_struct_name.cmm|1|Error type 16 at Line 5: Duplicated name\.
 tests/stage-02/cases/structures/undefined_structure.cmm|1|Error type 17 at Line 2: Undefined structure\.
+tests/stage-02/cases/structures/valid_struct_access.cmm|0|^Program \(1\)$
+tests/stage-02/cases/structures/dot_on_non_structure.cmm|1|Error type 13 at Line 3: Illegal use of "\."\.
+tests/stage-02/cases/structures/undefined_struct_field.cmm|1|Error type 14 at Line 7: Non-existent field\.

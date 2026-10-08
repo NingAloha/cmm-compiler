@@ -115,6 +115,7 @@ static void analyze_struct_dec_list(SemanticContext *context,
 static void analyze_struct_dec(SemanticContext *context, const TreeNode *node,
                                Type *base_type, Field **fields);
 static int struct_has_field(const Field *fields, const char *name);
+static const Field *struct_find_field(const Type *type, const char *name);
 
 int semantic_analyze(const TreeNode *root) {
     if (root == NULL) {
@@ -210,6 +211,24 @@ static int struct_has_field(const Field *fields, const char *name) {
     }
 
     return 0;
+}
+
+static const Field *struct_find_field(const Type *type, const char *name) {
+    if (type == NULL || type->kind != TYPE_STRUCT || name == NULL) {
+        return NULL;
+    }
+
+    const Field *field = type->as.structure.fields;
+
+    while (field != NULL) {
+        if (strcmp(field->name, name) == 0) {
+            return field;
+        }
+
+        field = field->next;
+    }
+
+    return NULL;
 }
 
 static void analyze_struct_dec(SemanticContext *context, const TreeNode *node,
@@ -332,7 +351,7 @@ static Type *analyze_struct_specifier(SemanticContext *context,
 
     if (tag_id != NULL &&
         !symbol_table_insert(&context->symbols, tag_id->text, SYMBOL_STRUCT,
-                            type, tag_id->line)) {
+                             type, tag_id->line)) {
         return type_error();
     }
 
@@ -770,9 +789,13 @@ static int exp_is_lvalue(const TreeNode *node) {
         return 1;
     }
 
-    return node_is(child_0, "Exp") && node_is(child_1, "LB") &&
-           node_is(child_2, "Exp") && node_is(child_3, "RB") &&
-           exp_is_lvalue(child_0);
+    if (node_is(child_0, "Exp") && node_is(child_1, "LB") &&
+        node_is(child_2, "Exp") && node_is(child_3, "RB")) {
+        return exp_is_lvalue(child_0);
+    }
+
+    return node_is(child_0, "Exp") && node_is(child_1, "DOT") &&
+           node_is(child_2, "ID") && exp_is_lvalue(child_0);
 }
 
 static int arguments_match(SemanticContext *context, const TreeNode *node,
@@ -928,6 +951,33 @@ static Type *analyze_exp(SemanticContext *context, const TreeNode *node) {
         }
 
         return array_type->as.array.element_type;
+    }
+
+    if (node_is(child_0, "Exp") && node_is(child_1, "DOT") &&
+        node_is(child_2, "ID")) {
+        Type *structure_type = analyze_exp(context, child_0);
+
+        if (structure_type == type_error()) {
+            return type_error();
+        }
+
+        if (structure_type->kind != TYPE_STRUCT) {
+            report_error(context, 13, node->line, "Illegal use of \".\"");
+            return type_error();
+        }
+
+        if (child_2->text == NULL) {
+            return type_error();
+        }
+
+        const Field *field = struct_find_field(structure_type, child_2->text);
+
+        if (field == NULL) {
+            report_error(context, 14, child_2->line, "Non-existent field");
+            return type_error();
+        }
+
+        return field->type;
     }
 
     if (node_is(child_0, "LP") && node_is(child_1, "Exp") &&
