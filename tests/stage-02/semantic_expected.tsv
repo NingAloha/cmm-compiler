@@ -1,34 +1,36 @@
 # source file|expected exit status|expected output pattern
-tests/stage-02/cases/declarations/valid_globals.cmm|0|ID: table
-tests/stage-02/cases/declarations/duplicate_global.cmm|1|Error type 3 at Line 2: Redefined variable\.
-tests/stage-02/cases/declarations/duplicate_from_list.cmm|1|Error type 3 at Line 2: Redefined variable\.
-tests/stage-02/cases/declarations/duplicate_local_variable.cmm|1|Error type 3 at Line 3: Redefined variable\.
-tests/stage-02/cases/declarations/mismatched_initializer.cmm|1|Error type 5 at Line 2: Type mismatched for assignment\.
-tests/stage-02/cases/expressions/undefined_variable.cmm|1|Error type 1 at Line 2: Undefined variable\.
-tests/stage-02/cases/expressions/mismatched_arithmetic.cmm|1|Error type 7 at Line 3: Type mismatched for operands\.
-tests/stage-02/cases/expressions/mismatched_assignment.cmm|1|Error type 5 at Line 3: Type mismatched for assignment\.
-tests/stage-02/cases/expressions/invalid_assignment_target.cmm|1|Error type 6 at Line 2: The left-hand side of an assignment must be a variable\.
-tests/stage-02/cases/expressions/valid_operators.cmm|0|^Program \(1\)$
-tests/stage-02/cases/expressions/invalid_not_operand.cmm|1|Error type 7 at Line 2: Type mismatched for operands\.
-tests/stage-02/cases/functions/duplicate_function.cmm|1|Error type 4 at Line 5: Redefined function\.
-tests/stage-02/cases/functions/duplicate_function_with_parameters.cmm|1|Error type 4 at Line 5: Redefined function\.
-tests/stage-02/cases/functions/duplicate_parameter.cmm|1|Error type 3 at Line 1: Redefined variable\.
-tests/stage-02/cases/functions/mismatched_return.cmm|1|Error type 8 at Line 2: Type mismatched for return\.
-tests/stage-02/cases/functions/undefined_function.cmm|1|Error type 2 at Line 2: Undefined function\.
-tests/stage-02/cases/functions/variable_called_as_function.cmm|1|Error type 11 at Line 3: Not a function\.
-tests/stage-02/cases/functions/wrong_number_of_arguments.cmm|1|Error type 9 at Line 6: Function is not applicable for arguments\.
-tests/stage-02/cases/functions/right_number_of_arguments.cmm|0|^Program \(1\)$
-tests/stage-02/cases/functions/wrong_argument_type.cmm|1|Error type 9 at Line 6: Function is not applicable for arguments\.
-tests/stage-02/cases/arrays/valid_array_access.cmm|0|^Program \(1\)$
-tests/stage-02/cases/arrays/not_an_array.cmm|1|Error type 10 at Line 3: Not an array\.
-tests/stage-02/cases/arrays/non_integer_array_index.cmm|1|Error type 12 at Line 3: Array index is not an integer\.
-tests/stage-02/cases/control_flow/valid_control_flow.cmm|0|^Program \(1\)$
-tests/stage-02/cases/control_flow/out_of_scope_variable.cmm|1|Error type 1 at Line 7: Undefined variable\.
-tests/stage-02/cases/control_flow/invalid_condition_type.cmm|1|Error type 7 at Line 2: Type mismatched for operands\.
-tests/stage-02/cases/structures/valid_struct_declaration.cmm|0|^Program \(1\)$
-tests/stage-02/cases/structures/duplicate_struct_field.cmm|1|Error type 15 at Line 3: Redefined field\.
-tests/stage-02/cases/structures/duplicate_struct_name.cmm|1|Error type 16 at Line 5: Duplicated name\.
-tests/stage-02/cases/structures/undefined_structure.cmm|1|Error type 17 at Line 2: Undefined structure\.
-tests/stage-02/cases/structures/valid_struct_access.cmm|0|^Program \(1\)$
-tests/stage-02/cases/structures/dot_on_non_structure.cmm|1|Error type 13 at Line 3: Illegal use of "\."\.
-tests/stage-02/cases/structures/undefined_struct_field.cmm|1|Error type 14 at Line 7: Non-existent field\.
+tests/stage-02/cases/semantic_clean_output.cmm|0|__EMPTY__
+tests/stage-02/cases/declarations/valid_globals.cmm|0|__EMPTY__
+tests/stage-02/cases/declarations/duplicate_global.cmm|0|Error type 3 at Line 2: Redefined variable\.
+tests/stage-02/cases/declarations/duplicate_from_list.cmm|0|Error type 3 at Line 2: Redefined variable\.
+tests/stage-02/cases/declarations/duplicate_local_variable.cmm|0|Error type 3 at Line 3: Redefined variable\.
+tests/stage-02/cases/declarations/mismatched_initializer.cmm|0|Error type 5 at Line 2: Type mismatched for assignment\.
+tests/stage-02/cases/expressions/undefined_variable.cmm|0|Error type 1 at Line 2: Undefined variable\.
+tests/stage-02/cases/expressions/mismatched_arithmetic.cmm|0|Error type 7 at Line 3: Type mismatched for operands\.
+tests/stage-02/cases/expressions/mismatched_assignment.cmm|0|Error type 5 at Line 3: Type mismatched for assignment\.
+tests/stage-02/cases/expressions/invalid_assignment_target.cmm|0|Error type 6 at Line 2: The left-hand side of an assignment must be a variable\.
+tests/stage-02/cases/expressions/valid_operators.cmm|0|__EMPTY__
+tests/stage-02/cases/expressions/invalid_not_operand.cmm|0|Error type 7 at Line 2: Type mismatched for operands\.
+tests/stage-02/cases/functions/duplicate_function.cmm|0|Error type 4 at Line 5: Redefined function\.
+tests/stage-02/cases/functions/duplicate_function_with_parameters.cmm|0|Error type 4 at Line 5: Redefined function\.
+tests/stage-02/cases/functions/duplicate_parameter.cmm|0|Error type 3 at Line 1: Redefined variable\.
+tests/stage-02/cases/functions/mismatched_return.cmm|0|Error type 8 at Line 2: Type mismatched for return\.
+tests/stage-02/cases/functions/undefined_function.cmm|0|Error type 2 at Line 2: Undefined function\.
+tests/stage-02/cases/functions/variable_called_as_function.cmm|0|Error type 11 at Line 3: Not a function\.
+tests/stage-02/cases/functions/wrong_number_of_arguments.cmm|0|Error type 9 at Line 6: Function is not applicable for arguments\.
+tests/stage-02/cases/functions/right_number_of_arguments.cmm|0|__EMPTY__
+tests/stage-02/cases/functions/wrong_argument_type.cmm|0|Error type 9 at Line 6: Function is not applicable for arguments\.
+tests/stage-02/cases/arrays/valid_array_access.cmm|0|__EMPTY__
+tests/stage-02/cases/arrays/not_an_array.cmm|0|Error type 10 at Line 3: Not an array\.
+tests/stage-02/cases/arrays/non_integer_array_index.cmm|0|Error type 12 at Line 3: Array index is not an integer\.
+tests/stage-02/cases/control_flow/valid_control_flow.cmm|0|__EMPTY__
+tests/stage-02/cases/control_flow/out_of_scope_variable.cmm|0|Error type 1 at Line 7: Undefined variable\.
+tests/stage-02/cases/control_flow/invalid_condition_type.cmm|0|Error type 7 at Line 2: Type mismatched for operands\.
+tests/stage-02/cases/structures/valid_struct_declaration.cmm|0|__EMPTY__
+tests/stage-02/cases/structures/duplicate_struct_field.cmm|0|Error type 15 at Line 3: Redefined field\.
+tests/stage-02/cases/structures/initialized_struct_field.cmm|0|Error type 15 at Line 2: Illegal initialization of field\.
+tests/stage-02/cases/structures/duplicate_struct_name.cmm|0|Error type 16 at Line 5: Duplicated name\.
+tests/stage-02/cases/structures/undefined_structure.cmm|0|Error type 17 at Line 2: Undefined structure\.
+tests/stage-02/cases/structures/valid_struct_access.cmm|0|__EMPTY__
+tests/stage-02/cases/structures/dot_on_non_structure.cmm|0|Error type 13 at Line 3: Illegal use of "\."\.
+tests/stage-02/cases/structures/undefined_struct_field.cmm|0|Error type 14 at Line 7: Non-existent field\.

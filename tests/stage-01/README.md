@@ -3,16 +3,16 @@
 这些用例面向实验一的词法分析、语法分析和语法树输出。目录按预期结果分类：
 
 - `valid/`：应以状态码 0 结束并打印语法树。
-- `invalid/lexical/`：应以状态码非 0 结束，至少报告表中对应的 A 类错误。
-- `invalid/syntax/`：应以状态码非 0 结束，至少报告表中对应的 B 类错误。
+- `invalid/lexical/`：应以状态码 0 结束，并至少报告表中对应的 A 类错误。
+- `invalid/syntax/`：应以状态码 0 结束，并至少报告表中对应的 B 类错误。
 
 在项目根目录执行 `make test-01` 可运行全部实验一样例。`make test` 会运行所有阶段的测试，其中包含本组测试。它只打印失败样例的文件名和原始输出，最后打印通过数与总数。预期退出码和用于判定的输出正则保存在 `expected.tsv`。
 
 也可先执行 `make`，再逐个运行：
 
 ```bash
-./build/parser tests/stage-01/valid/01-minimal-function.cmm
-./build/parser tests/stage-01/invalid/lexical/02-invalid-octal.cmm
+./build/parser --tree tests/stage-01/valid/01-minimal-function.cmm
+./build/parser --tree tests/stage-01/invalid/lexical/02-invalid-octal.cmm
 ```
 
 错误信息的说明文字可以不同；验收重点是错误类型与行号。对于含多个错误的文件，恢复策略可能影响后续错误的数量，因此表格只承诺至少出现的首个目标错误。

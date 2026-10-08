@@ -18,6 +18,7 @@ LEXER_SOURCE := $(BUILD_DIR)/lex.yy.c
 DRIVER_SOURCE := src/driver/main.c
 TREE_SOURCE := src/frontend/tree.c
 TARGET := $(BUILD_DIR)/parser
+ROOT_TARGET := parser
 TEST_RUNNER := tests/run_tests.sh
 STAGE_01_TEST_MANIFEST := tests/stage-01/expected.tsv
 SEMANTIC_TYPE_SOURCE := src/semantic/type.c
@@ -38,7 +39,7 @@ SUBMIT_ZIP := submit.zip
 
 .PHONY: all clean pack format test $(TEST_TARGETS) $(REPORT_PDF)
 
-all: $(TARGET)
+all: $(TARGET) $(ROOT_TARGET)
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -56,16 +57,19 @@ $(TARGET): $(PARSER_SOURCE) $(LEXER_SOURCE) $(TREE_SOURCE) $(DRIVER_SOURCE) \
 		$(DRIVER_SOURCE) $(SEMANTIC_ANALYZER_SOURCE) $(SEMANTIC_TYPE_SOURCE) \
 		$(SEMANTIC_SYMBOL_SOURCE) $(SEMANTIC_UTIL_SOURCE)
 
+$(ROOT_TARGET): $(TARGET)
+	ln -sf $(TARGET) $@
+
 test: $(TEST_TARGETS)
 
 test-01: $(TARGET) $(TEST_RUNNER) $(STAGE_01_TEST_MANIFEST)
-	@sh $(TEST_RUNNER) $(TARGET) $(STAGE_01_TEST_MANIFEST)
+	@sh $(TEST_RUNNER) $(TARGET) $(STAGE_01_TEST_MANIFEST) --tree
 
 test-02: $(STAGE_02_TYPE_TEST) $(STAGE_02_SYMBOL_TEST) $(TARGET) \
 	$(TEST_RUNNER) $(STAGE_02_SEMANTIC_MANIFEST)
 	@$(STAGE_02_TYPE_TEST)
 	@$(STAGE_02_SYMBOL_TEST)
-	@sh $(TEST_RUNNER) $(TARGET) $(STAGE_02_SEMANTIC_MANIFEST) --semantic
+	@sh $(TEST_RUNNER) $(TARGET) $(STAGE_02_SEMANTIC_MANIFEST)
 
 format:
 	@command -v $(CLANG_FORMAT) >/dev/null 2>&1 || { echo "clang-format is not installed. Run: brew install clang-format" >&2; exit 1; }
@@ -93,3 +97,4 @@ pack: $(REPORT_PDF)
 
 clean:
 	rm -rf $(BUILD_DIR)
+	rm -f $(ROOT_TARGET)

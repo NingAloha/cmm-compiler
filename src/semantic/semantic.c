@@ -220,6 +220,10 @@ static void analyze_struct_dec(SemanticContext *context, const TreeNode *node,
         return;
     }
 
+    if (node_is(child_at(node, 1), "ASSIGNOP")) {
+        report_error(context, 15, id->line, "Illegal initialization of field");
+    }
+
     if (field_find(*fields, id->text) != NULL) {
         report_error(context, 15, id->line, "Redefined field");
         return;

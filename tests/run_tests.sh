@@ -3,7 +3,7 @@
 set -u
 
 if [ "$#" -ne 2 ] && [ "$#" -ne 3 ]; then
-    printf '%s\n' "Usage: $0 <parser> <manifest> [--semantic]" >&2
+    printf '%s\n' "Usage: $0 <parser> <manifest> [--tree]" >&2
     exit 2
 fi
 
@@ -25,15 +25,22 @@ while IFS='|' read -r test_file expected_status expected_pattern; do
     total=$((total + 1))
     output_file=$(mktemp "${TMPDIR:-/tmp}/cmm-compiler-test.XXXXXX") || exit 2
 
-    if [ "$mode" = "--semantic" ]; then
-        "$parser" --semantic "$test_file" >"$output_file" 2>&1
+    if [ "$mode" = "--tree" ]; then
+        "$parser" --tree "$test_file" >"$output_file" 2>&1
     else
         "$parser" "$test_file" >"$output_file" 2>&1
     fi
     actual_status=$?
 
+    output_matches=0
+    if [ "$expected_pattern" = "__EMPTY__" ]; then
+        [ ! -s "$output_file" ] && output_matches=1
+    elif grep -Eq "$expected_pattern" "$output_file"; then
+        output_matches=1
+    fi
+
     if [ "$actual_status" -eq "$expected_status" ] &&
-        grep -Eq "$expected_pattern" "$output_file"; then
+        [ "$output_matches" -eq 1 ]; then
         passed=$((passed + 1))
     else
         has_failure=1

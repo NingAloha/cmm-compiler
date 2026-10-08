@@ -5,14 +5,14 @@ tests/stage-01/valid/03-expressions.cmm|0|^Program \(1\)$
 tests/stage-01/valid/04-arrays-and-calls.cmm|0|^Program \(1\)$
 tests/stage-01/valid/05-optional-numbers.cmm|0|^Program \(1\)$
 tests/stage-01/valid/06-comments.cmm|0|^Program \(1\)$
-tests/stage-01/invalid/lexical/01-mysterious-character.cmm|1|^Error type A at Line 3:
-tests/stage-01/invalid/lexical/02-invalid-octal.cmm|1|^Error type A at Line 3:
-tests/stage-01/invalid/lexical/03-invalid-hexadecimal.cmm|1|^Error type A at Line 3:
-tests/stage-01/invalid/lexical/04-invalid-exponent.cmm|1|^Error type A at Line 3:
-tests/stage-01/invalid/lexical/05-invalid-fraction.cmm|1|^Error type A at Line 3:
-tests/stage-01/invalid/lexical/06-unterminated-comment.cmm|1|^Error type A at Line 3:
-tests/stage-01/invalid/syntax/01-array-comma.cmm|1|^Error type B at Line 4:
-tests/stage-01/invalid/syntax/02-missing-semi-before-else.cmm|1|^Error type B at Line 4:
-tests/stage-01/invalid/syntax/03-bad-parameter-list.cmm|1|^Error type B at Line 1:
-tests/stage-01/invalid/syntax/04-unclosed-parenthesis.cmm|1|^Error type B at Line 4:
-tests/stage-01/invalid/syntax/05-nested-comment-remainder.cmm|1|^Error type B at Line 5:
+tests/stage-01/invalid/lexical/01-mysterious-character.cmm|0|^Error type A at Line 3:
+tests/stage-01/invalid/lexical/02-invalid-octal.cmm|0|^Error type A at Line 3:
+tests/stage-01/invalid/lexical/03-invalid-hexadecimal.cmm|0|^Error type A at Line 3:
+tests/stage-01/invalid/lexical/04-invalid-exponent.cmm|0|^Error type A at Line 3:
+tests/stage-01/invalid/lexical/05-invalid-fraction.cmm|0|^Error type A at Line 3:
+tests/stage-01/invalid/lexical/06-unterminated-comment.cmm|0|^Error type A at Line 3:
+tests/stage-01/invalid/syntax/01-array-comma.cmm|0|^Error type B at Line 4:
+tests/stage-01/invalid/syntax/02-missing-semi-before-else.cmm|0|^Error type B at Line 4:
+tests/stage-01/invalid/syntax/03-bad-parameter-list.cmm|0|^Error type B at Line 1:
+tests/stage-01/invalid/syntax/04-unclosed-parenthesis.cmm|0|^Error type B at Line 4:
+tests/stage-01/invalid/syntax/05-nested-comment-remainder.cmm|0|^Error type B at Line 5:
