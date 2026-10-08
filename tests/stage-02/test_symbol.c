@@ -8,6 +8,7 @@ int main(void) {
 
     symbol_table_init(&table);
     assert(table.head == NULL);
+    assert(table.scope_depth == 0);
 
     assert(
         symbol_table_insert(&table, "count", SYMBOL_VARIABLE, type_int(), 3));
@@ -49,8 +50,57 @@ int main(void) {
 
     assert(symbol_table_find(&table, "missing") == NULL);
 
+    assert(table.scope_depth == 0);
+    assert(symbol_table_find_current(&table, "count") != NULL);
+
+    symbol_table_enter_scope(&table);
+    assert(table.scope_depth == 1);
+    assert(symbol_table_find_current(&table, "count") == NULL);
+
+    assert(symbol_table_insert(&table, "count", SYMBOL_VARIABLE, type_float(),
+                               30));
+
+    const Symbol *inner_count = symbol_table_find(&table, "count");
+    assert(inner_count != NULL);
+    assert(inner_count->type == type_float());
+    assert(inner_count->scope_depth == 1);
+
+    assert(symbol_table_find_current(&table, "count") == inner_count);
+
+    assert(
+        !symbol_table_insert(&table, "count", SYMBOL_VARIABLE, type_int(), 31));
+
+    symbol_table_enter_scope(&table);
+    assert(table.scope_depth == 2);
+
+    assert(
+        symbol_table_insert(&table, "count", SYMBOL_VARIABLE, type_int(), 40));
+
+    const Symbol *nested_count = symbol_table_find(&table, "count");
+    assert(nested_count != NULL);
+    assert(nested_count->type == type_int());
+    assert(nested_count->scope_depth == 2);
+
+    symbol_table_leave_scope(&table);
+    assert(table.scope_depth == 1);
+
+    inner_count = symbol_table_find(&table, "count");
+    assert(inner_count != NULL);
+    assert(inner_count->type == type_float());
+    assert(inner_count->scope_depth == 1);
+    symbol_table_leave_scope(&table);
+    assert(table.scope_depth == 0);
+
+    count = symbol_table_find(&table, "count");
+    assert(count != NULL);
+    assert(count->type == type_int());
+    assert(count->scope_depth == 0);
+
+    assert(symbol_table_find_current(&table, "count") == count);
+
     symbol_table_clear(&table);
     assert(table.head == NULL);
+    assert(table.scope_depth == 0);
     assert(symbol_table_find(&table, "count") == NULL);
 
     symbol_table_clear(&table);

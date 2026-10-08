@@ -21,6 +21,7 @@ static char *copy_string(const char *source) {
 void symbol_table_init(SymbolTable *table) {
     if (table != NULL) {
         table->head = NULL;
+        table->scope_depth = 0;
     }
 }
 
@@ -39,9 +40,11 @@ void symbol_table_clear(SymbolTable *table) {
     }
 
     table->head = NULL;
+    table->scope_depth = 0;
 }
 
-const Symbol *symbol_table_find(const SymbolTable *table, const char *name) {
+const Symbol *symbol_table_find_current(const SymbolTable *table,
+                                        const char *name) {
     if (table == NULL || name == NULL) {
         return NULL;
     }
@@ -49,7 +52,8 @@ const Symbol *symbol_table_find(const SymbolTable *table, const char *name) {
     const Symbol *current = table->head;
 
     while (current != NULL) {
-        if (strcmp(current->name, name) == 0) {
+        if (current->scope_depth == table->scope_depth &&
+            strcmp(current->name, name) == 0) {
             return current;
         }
 
@@ -59,13 +63,32 @@ const Symbol *symbol_table_find(const SymbolTable *table, const char *name) {
     return NULL;
 }
 
+const Symbol *symbol_table_find(const SymbolTable *table, const char *name) {
+    if (table == NULL || name == NULL) {
+        return NULL;
+    }
+
+    const Symbol *current = table->head;
+    const Symbol *result = NULL;
+
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+            result = current;
+        }
+
+        current = current->next;
+    }
+
+    return result;
+}
+
 int symbol_table_insert(SymbolTable *table, const char *name, SymbolKind kind,
                         Type *type, int line) {
     if (table == NULL || name == NULL || type == NULL) {
         return 0;
     }
 
-    if (symbol_table_find(table, name) != NULL) {
+    if (symbol_table_find_current(table, name) != NULL) {
         return 0;
     }
 
@@ -75,6 +98,7 @@ int symbol_table_insert(SymbolTable *table, const char *name, SymbolKind kind,
     }
 
     new_symbol->name = copy_string(name);
+    new_symbol->scope_depth = table->scope_depth;
     if (new_symbol->name == NULL) {
         free(new_symbol);
         return 0;
@@ -97,4 +121,39 @@ int symbol_table_insert(SymbolTable *table, const char *name, SymbolKind kind,
 
     tail->next = new_symbol;
     return 1;
+}
+
+void symbol_table_enter_scope(SymbolTable *table) {
+    if (table != NULL) {
+        table->scope_depth++;
+    }
+}
+
+void symbol_table_leave_scope(SymbolTable *table) {
+    if (table != NULL && table->scope_depth > 0) {
+        int leaving_depth = table->scope_depth;
+        Symbol *previous = NULL;
+        Symbol *current = table->head;
+
+        while (current != NULL) {
+            if (current->scope_depth == leaving_depth) {
+                Symbol *next = current->next;
+
+                if (previous == NULL) {
+                    table->head = next;
+                } else {
+                    previous->next = next;
+                }
+
+                free(current->name);
+                free(current);
+                current = next;
+            } else {
+                previous = current;
+                current = current->next;
+            }
+        }
+
+        table->scope_depth--;
+    }
 }
