@@ -37,6 +37,18 @@ int main(void) {
     assert(type_equal(point, point));
     assert(!type_equal(point, vector));
 
+    Field *left = field_new("left", type_int(), 1);
+    Field *right = field_new("right", type_float(), 2);
+
+    assert(left != NULL);
+    assert(right != NULL);
+
+    field_append(&left, right);
+
+    assert(field_find(left, "left") == left);
+    assert(field_find(left, "right") == right);
+    assert(field_find(left, "missing") == NULL);
+
     puts("type tests passed");
     return 0;
 }

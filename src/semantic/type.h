@@ -57,6 +57,7 @@ Type *type_new_function(Type *return_type, Field *parameters);
 
 Field *field_new(const char *name, Type *type, int line);
 void field_append(Field **head, Field *field);
+const Field *field_find(const Field *fields, const char *name);
 
 /* Type predicates and comparison */
 

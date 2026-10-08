@@ -23,6 +23,7 @@ STAGE_01_TEST_MANIFEST := tests/stage-01/expected.tsv
 SEMANTIC_TYPE_SOURCE := src/semantic/type.c
 SEMANTIC_SYMBOL_SOURCE := src/semantic/symbol.c
 SEMANTIC_ANALYZER_SOURCE := src/semantic/semantic.c
+SEMANTIC_UTIL_SOURCE := src/semantic/util.c
 STAGE_02_TYPE_TEST_SOURCE := tests/stage-02/test_type.c
 STAGE_02_TYPE_TEST := $(BUILD_DIR)/test_type
 STAGE_02_SYMBOL_TEST_SOURCE := tests/stage-02/test_symbol.c
@@ -49,10 +50,11 @@ $(LEXER_SOURCE): $(LEXER_SPEC) $(PARSER_SOURCE) | $(BUILD_DIR)
 	$(FLEX) -o $@ $<
 
 $(TARGET): $(PARSER_SOURCE) $(LEXER_SOURCE) $(TREE_SOURCE) $(DRIVER_SOURCE) \
-	$(SEMANTIC_ANALYZER_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_SYMBOL_SOURCE)
+	$(SEMANTIC_ANALYZER_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_SYMBOL_SOURCE) \
+	$(SEMANTIC_UTIL_SOURCE)
 	$(CC) $(CFLAGS) -Isrc/semantic -o $@ $(PARSER_SOURCE) $(TREE_SOURCE) \
 		$(DRIVER_SOURCE) $(SEMANTIC_ANALYZER_SOURCE) $(SEMANTIC_TYPE_SOURCE) \
-		$(SEMANTIC_SYMBOL_SOURCE)
+		$(SEMANTIC_SYMBOL_SOURCE) $(SEMANTIC_UTIL_SOURCE)
 
 test: $(TEST_TARGETS)
 
@@ -69,11 +71,11 @@ format:
 	@command -v $(CLANG_FORMAT) >/dev/null 2>&1 || { echo "clang-format is not installed. Run: brew install clang-format" >&2; exit 1; }
 	find src tests -type f \( -name '*.c' -o -name '*.h' \) -print0 | xargs -0 $(CLANG_FORMAT) -i
 
-$(STAGE_02_TYPE_TEST): $(STAGE_02_TYPE_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) src/semantic/type.h | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -Isrc/semantic -o $@ $(STAGE_02_TYPE_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE)
+$(STAGE_02_TYPE_TEST): $(STAGE_02_TYPE_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_UTIL_SOURCE) src/semantic/type.h src/semantic/util.h | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -Isrc/semantic -o $@ $(STAGE_02_TYPE_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_UTIL_SOURCE)
 
-$(STAGE_02_SYMBOL_TEST): $(STAGE_02_SYMBOL_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_SYMBOL_SOURCE) src/semantic/type.h src/semantic/symbol.h | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -Isrc/semantic -o $@ $(STAGE_02_SYMBOL_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_SYMBOL_SOURCE)
+$(STAGE_02_SYMBOL_TEST): $(STAGE_02_SYMBOL_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_SYMBOL_SOURCE) $(SEMANTIC_UTIL_SOURCE) src/semantic/type.h src/semantic/symbol.h src/semantic/util.h | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -Isrc/semantic -o $@ $(STAGE_02_SYMBOL_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_SYMBOL_SOURCE) $(SEMANTIC_UTIL_SOURCE)
 
 $(REPORT_PDF): $(REPORT_SOURCE) $(REPORT_STYLE) | $(BUILD_DIR)
 	$(PANDOC) $(REPORT_SOURCE) --standalone --embed-resources --css $(REPORT_STYLE) -o $(REPORT_HTML)

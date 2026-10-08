@@ -103,6 +103,8 @@ static int exp_is_lvalue(const TreeNode *node);
 static int arguments_match(SemanticContext *context, const TreeNode *node,
                            const Field *parameters, int *has_error);
 static void analyze_condition(SemanticContext *context, const TreeNode *node);
+static int declare_variable(SemanticContext *context, const char *name,
+                            Type *type, int line);
 static Type *analyze_struct_specifier(SemanticContext *context,
                                       const TreeNode *node);
 static void analyze_struct_def_list(SemanticContext *context,
@@ -114,8 +116,8 @@ static void analyze_struct_dec_list(SemanticContext *context,
                                     Field **fields);
 static void analyze_struct_dec(SemanticContext *context, const TreeNode *node,
                                Type *base_type, Field **fields);
-static int struct_has_field(const Field *fields, const char *name);
 static const Field *struct_find_field(const Type *type, const char *name);
+static Type *lookup_function_type(SemanticContext *context, const TreeNode *id);
 
 int semantic_analyze(const TreeNode *root) {
     if (root == NULL) {
@@ -195,40 +197,12 @@ static Type *analyze_specifier(SemanticContext *context, const TreeNode *node) {
     return type_error();
 }
 
-static int struct_has_field(const Field *fields, const char *name) {
-    if (name == NULL) {
-        return 0;
-    }
-
-    const Field *current = fields;
-
-    while (current != NULL) {
-        if (strcmp(current->name, name) == 0) {
-            return 1;
-        }
-
-        current = current->next;
-    }
-
-    return 0;
-}
-
 static const Field *struct_find_field(const Type *type, const char *name) {
     if (type == NULL || type->kind != TYPE_STRUCT || name == NULL) {
         return NULL;
     }
 
-    const Field *field = type->as.structure.fields;
-
-    while (field != NULL) {
-        if (strcmp(field->name, name) == 0) {
-            return field;
-        }
-
-        field = field->next;
-    }
-
-    return NULL;
+    return field_find(type->as.structure.fields, name);
 }
 
 static void analyze_struct_dec(SemanticContext *context, const TreeNode *node,
@@ -246,7 +220,7 @@ static void analyze_struct_dec(SemanticContext *context, const TreeNode *node,
         return;
     }
 
-    if (struct_has_field(*fields, id->text)) {
+    if (field_find(*fields, id->text) != NULL) {
         report_error(context, 15, id->line, "Redefined field");
         return;
     }
@@ -450,6 +424,22 @@ static Type *analyze_var_dec(const TreeNode *node, Type *base_type) {
     return type_error();
 }
 
+static int declare_variable(SemanticContext *context, const char *name,
+                            Type *type, int line) {
+    if (context == NULL || name == NULL || type == NULL ||
+        type == type_error()) {
+        return 0;
+    }
+
+    if (symbol_table_find_current(&context->symbols, name) != NULL) {
+        report_error(context, 3, line, "Redefined variable");
+        return 0;
+    }
+
+    return symbol_table_insert(&context->symbols, name, SYMBOL_VARIABLE, type,
+                               line);
+}
+
 static Field *analyze_param_dec(SemanticContext *context,
                                 const TreeNode *node) {
     if (context == NULL || node == NULL || !node_is(node, "ParamDec")) {
@@ -485,12 +475,7 @@ static void analyze_ext_dec_list(SemanticContext *context, const TreeNode *node,
 
         if (id != NULL && id->text != NULL && type != NULL &&
             type != type_error()) {
-            if (symbol_table_find(&context->symbols, id->text) != NULL) {
-                report_error(context, 3, id->line, "Redefined variable");
-            } else {
-                symbol_table_insert(&context->symbols, id->text,
-                                    SYMBOL_VARIABLE, type, id->line);
-            }
+            declare_variable(context, id->text, type, id->line);
         }
     }
 
@@ -513,12 +498,7 @@ static void analyze_dec(SemanticContext *context, const TreeNode *node,
         return;
     }
 
-    if (symbol_table_find_current(&context->symbols, id->text) != NULL) {
-        report_error(context, 3, id->line, "Redefined variable");
-    } else {
-        symbol_table_insert(&context->symbols, id->text, SYMBOL_VARIABLE, type,
-                            id->line);
-    }
+    declare_variable(context, id->text, type, id->line);
 
     const TreeNode *assign_op = child_at(node, 1);
     const TreeNode *initializer = child_at(node, 2);
@@ -625,14 +605,8 @@ static void insert_parameters(SemanticContext *context,
 
     while (current != NULL) {
         if (current->name != NULL && current->type != NULL) {
-            if (symbol_table_find_current(&context->symbols, current->name) !=
-                NULL) {
-                report_error(context, 3, current->line, "Redefined variable");
-            } else {
-                symbol_table_insert(&context->symbols, current->name,
-                                    SYMBOL_VARIABLE, current->type,
-                                    current->line);
-            }
+            declare_variable(context, current->name, current->type,
+                             current->line);
         }
 
         current = current->next;
@@ -831,6 +805,28 @@ static int arguments_match(SemanticContext *context, const TreeNode *node,
                            has_error);
 }
 
+static Type *lookup_function_type(SemanticContext *context,
+                                  const TreeNode *id) {
+    if (context == NULL || !node_is(id, "ID") || id->text == NULL) {
+        return type_error();
+    }
+
+    const Symbol *symbol = symbol_table_find(&context->symbols, id->text);
+
+    if (symbol == NULL) {
+        report_error(context, 2, id->line, "Undefined function");
+        return type_error();
+    }
+
+    if (symbol->kind != SYMBOL_FUNCTION || symbol->type == NULL ||
+        symbol->type->kind != TYPE_FUNCTION) {
+        report_error(context, 11, id->line, "Not a function");
+        return type_error();
+    }
+
+    return symbol->type;
+}
+
 static Type *analyze_exp(SemanticContext *context, const TreeNode *node) {
     if (context == NULL || node == NULL || !node_is(node, "Exp")) {
         return type_error();
@@ -867,57 +863,33 @@ static Type *analyze_exp(SemanticContext *context, const TreeNode *node) {
 
     if (node_is(child_0, "ID") && node_is(child_1, "LP") &&
         node_is(child_2, "RP")) {
-        if (child_0->text == NULL) {
+        Type *function_type = lookup_function_type(context, child_0);
+
+        if (function_type == type_error()) {
             return type_error();
         }
 
-        const Symbol *symbol =
-            symbol_table_find(&context->symbols, child_0->text);
-
-        if (symbol == NULL) {
-            report_error(context, 2, child_0->line, "Undefined function");
-            return type_error();
-        }
-
-        if (symbol->kind != SYMBOL_FUNCTION || symbol->type == NULL ||
-            symbol->type->kind != TYPE_FUNCTION) {
-            report_error(context, 11, child_0->line, "Not a function");
-            return type_error();
-        }
-
-        if (symbol->type->as.function.parameters != NULL) {
+        if (function_type->as.function.parameters != NULL) {
             report_error(context, 9, child_0->line,
                          "Function is not applicable for arguments");
             return type_error();
         }
 
-        return symbol->type->as.function.return_type;
+        return function_type->as.function.return_type;
     }
 
     if (node_is(child_0, "ID") && node_is(child_1, "LP") &&
         node_is(child_2, "Args") && node_is(child_3, "RP")) {
-        if (child_0->text == NULL) {
-            return type_error();
-        }
+        Type *function_type = lookup_function_type(context, child_0);
 
-        const Symbol *symbol =
-            symbol_table_find(&context->symbols, child_0->text);
-
-        if (symbol == NULL) {
-            report_error(context, 2, child_0->line, "Undefined function");
-            return type_error();
-        }
-
-        if (symbol->kind != SYMBOL_FUNCTION || symbol->type == NULL ||
-            symbol->type->kind != TYPE_FUNCTION) {
-            report_error(context, 11, child_0->line, "Not a function");
+        if (function_type == type_error()) {
             return type_error();
         }
 
         int has_error = 0;
 
         if (!arguments_match(context, child_2,
-                             symbol->type->as.function.parameters,
+                             function_type->as.function.parameters,
                              &has_error)) {
             if (!has_error) {
                 report_error(context, 9, child_0->line,
@@ -927,7 +899,7 @@ static Type *analyze_exp(SemanticContext *context, const TreeNode *node) {
             return type_error();
         }
 
-        return symbol->type->as.function.return_type;
+        return function_type->as.function.return_type;
     }
 
     if (node_is(child_0, "Exp") && node_is(child_1, "LB") &&

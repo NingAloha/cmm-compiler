@@ -1,4 +1,5 @@
 #include "type.h"
+#include "util.h"
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -7,23 +8,6 @@
 static Type int_type = {.kind = TYPE_INT};
 static Type float_type = {.kind = TYPE_FLOAT};
 static Type error_type = {.kind = TYPE_ERROR};
-
-/* Storage helpers */
-
-static char *copy_string(const char *source) {
-    if (source == NULL) {
-        return NULL;
-    }
-
-    size_t size = strlen(source) + 1;
-    char *copy = malloc(size);
-
-    if (copy != NULL) {
-        memcpy(copy, source, size);
-    }
-
-    return copy;
-}
 
 /* Shared primitive types */
 
@@ -56,7 +40,7 @@ Type *type_new_structure(const char *tag, Field *fields) {
     }
 
     type->kind = TYPE_STRUCT;
-    type->as.structure.tag = copy_string(tag);
+    type->as.structure.tag = string_duplicate(tag);
     if (tag != NULL && type->as.structure.tag == NULL) {
         free(type);
         return NULL;
@@ -86,7 +70,7 @@ Field *field_new(const char *name, Type *type, int line) {
         return NULL;
     }
 
-    field->name = copy_string(name);
+    field->name = string_duplicate(name);
     if (name != NULL && field->name == NULL) {
         free(field);
         return NULL;
@@ -115,6 +99,24 @@ void field_append(Field **head, Field *field) {
         tail = tail->next;
     }
     tail->next = field;
+}
+
+const Field *field_find(const Field *fields, const char *name) {
+    if (name == NULL) {
+        return NULL;
+    }
+
+    const Field *current = fields;
+
+    while (current != NULL) {
+        if (current->name != NULL && strcmp(current->name, name) == 0) {
+            return current;
+        }
+
+        current = current->next;
+    }
+
+    return NULL;
 }
 
 static int field_list_equal(const Field *left, const Field *right) {

@@ -1,24 +1,8 @@
 #include "symbol.h"
+#include "util.h"
 
 #include <stdlib.h>
 #include <string.h>
-
-/* Storage helpers */
-
-static char *copy_string(const char *source) {
-    if (source == NULL) {
-        return NULL;
-    }
-
-    size_t size = strlen(source) + 1;
-    char *copy = malloc(size);
-
-    if (copy != NULL) {
-        memcpy(copy, source, size);
-    }
-
-    return copy;
-}
 
 /* Lifetime */
 
@@ -105,7 +89,7 @@ int symbol_table_insert(SymbolTable *table, const char *name, SymbolKind kind,
         return 0;
     }
 
-    new_symbol->name = copy_string(name);
+    new_symbol->name = string_duplicate(name);
     new_symbol->scope_depth = table->scope_depth;
     if (new_symbol->name == NULL) {
         free(new_symbol);
