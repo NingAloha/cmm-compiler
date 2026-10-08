@@ -1,0 +1,7 @@
+int twice() {
+    return 0;
+}
+
+float twice() {
+    return 0.0;
+}

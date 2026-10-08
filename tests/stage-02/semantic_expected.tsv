@@ -2,3 +2,5 @@
 tests/stage-02/cases/valid_globals.cmm|0|ID: table
 tests/stage-02/cases/duplicate_global.cmm|1|Error type 3 at Line 2: Redefined variable\.
 tests/stage-02/cases/duplicate_from_list.cmm|1|Error type 3 at Line 2: Redefined variable\.
+tests/stage-02/cases/duplicate_function.cmm|1|Error type 4 at Line 5: Redefined function\.
+tests/stage-02/cases/duplicate_function_with_parameters.cmm|1|Error type 4 at Line 5: Redefined function\.
