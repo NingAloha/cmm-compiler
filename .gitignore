@@ -5,3 +5,4 @@ submit.zip
 *.pdf
 *Makefile_ref
 .clang-format
+parser
