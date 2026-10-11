@@ -2,7 +2,7 @@
 
 基于 Flex、Bison 和 C 实现的 C-- 编译器课程项目。
 
-## 当前阶段
+## 当前能力
 
 **Stage 02：已完成类型系统、符号表和错误类型 1--17 的语义检查，并已接入解析器；符号表还支持选做 2.2 的嵌套作用域。**
 
@@ -17,15 +17,26 @@
 - 语法分析器生成器：`bison`
 - 构建工具：`make`
 
-## 构建与运行
+## 快速开始
+
+### 构建
 
 ```bash
 make
+```
+
+该命令生成 `build/parser`，并在项目根目录创建 `./parser` 入口。
+
+### 运行
+
+```bash
 ./parser path/to/source.cmm
 ./parser --tree path/to/source.cmm
 ```
 
-运行测试：
+默认模式执行语义分析；`--tree` 模式按先序遍历输出实验一语法树。
+
+### 测试
 
 ```bash
 make test-01  # 实验一：词法、语法与语法树测试
@@ -33,7 +44,15 @@ make test-02  # 实验二：类型、符号表与语义检查测试
 make test     # 运行全部阶段测试
 ```
 
-测试样例与判定规则见[实验一测试说明](tests/stage-01/README.md)和[实验二测试说明](tests/stage-02/README.md)。
+各目标的职责如下：
+
+| 命令 | 测试范围 | 说明 |
+| --- | --- | --- |
+| `make test-01` | Stage 01 样例 | 词法、语法与语法树输出 |
+| `make test-02` | Stage 02 单元测试与样例 | 类型、符号表与语义检查 |
+| `make test` | 全部测试 | 依次运行两个阶段 |
+
+样例路径与判定规则见[实验一测试说明](tests/stage-01/README.md)和[实验二测试说明](tests/stage-02/README.md)。
 
 ## 模块说明
 
@@ -46,4 +65,6 @@ make test     # 运行全部阶段测试
 | `src/semantic/type.c`、`type.h` | 表示基础类型、数组、结构体和函数类型，并判断类型等价 | [类型系统](docs/stage-02/type.md) |
 | `src/semantic/symbol.c`、`symbol.h` | 维护变量、函数和结构体符号，支持嵌套作用域 | [符号表](docs/stage-02/symbol.md) |
 | `src/semantic/semantic.c`、`semantic.h` | 遍历 AST、进行类型检查并输出错误类型 1--17 | [语义分析](docs/stage-02/semantic.md) |
+| `tests/run_tests.sh` | 执行清单中的端到端样例，并校验退出码与输出 | [测试说明](tests/stage-02/README.md) |
+| `tests/stage-01/` | 保存实验一样例、清单与说明 | [实验一测试](tests/stage-01/README.md) |
 | `tests/stage-02/` | 运行类型、符号表和端到端语义回归测试 | [实验二测试](tests/stage-02/README.md) |
