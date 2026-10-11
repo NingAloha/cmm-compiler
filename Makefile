@@ -30,12 +30,13 @@ STAGE_02_TYPE_TEST := $(BUILD_DIR)/test_type
 STAGE_02_SYMBOL_TEST_SOURCE := tests/stage-02/test_symbol.c
 STAGE_02_SYMBOL_TEST := $(BUILD_DIR)/test_symbol
 STAGE_02_SEMANTIC_MANIFEST := tests/stage-02/semantic_expected.tsv
-REPORT_SOURCE := report.md
-REPORT_STYLE := report.css
+COURSEWORK_DIR := coursework
+REPORT_SOURCE := $(COURSEWORK_DIR)/report.md
+REPORT_STYLE := $(COURSEWORK_DIR)/report.css
 REPORT_HTML := $(BUILD_DIR)/report.html
-REPORT_PDF := report.pdf
+REPORT_PDF := $(COURSEWORK_DIR)/report.pdf
 PACKAGE_DIR := $(BUILD_DIR)/submission
-SUBMIT_ZIP := submit.zip
+SUBMIT_ZIP := $(COURSEWORK_DIR)/submit.zip
 
 .PHONY: all clean pack format test $(TEST_TARGETS) $(REPORT_PDF)
 
@@ -82,7 +83,7 @@ $(STAGE_02_SYMBOL_TEST): $(STAGE_02_SYMBOL_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) 
 	$(CC) $(CFLAGS) -Isrc/semantic -o $@ $(STAGE_02_SYMBOL_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_SYMBOL_SOURCE) $(SEMANTIC_UTIL_SOURCE)
 
 $(REPORT_PDF): $(REPORT_SOURCE) $(REPORT_STYLE) | $(BUILD_DIR)
-	$(PANDOC) $(REPORT_SOURCE) --standalone --embed-resources --css $(REPORT_STYLE) -o $(REPORT_HTML)
+	$(PANDOC) $(REPORT_SOURCE) --standalone --embed-resources --syntax-highlighting=none --metadata lang=zh-Hans --css $(REPORT_STYLE) -o $(REPORT_HTML)
 	$(WEASYPRINT) $(REPORT_HTML) $@
 
 pack: $(REPORT_PDF)
@@ -98,5 +99,4 @@ pack: $(REPORT_PDF)
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -f $(ROOT_TARGET)
-	rm -rf $(REPORT_PDF)
-	rm -rf $(SUBMIT_ZIP)
+	rm -f $(REPORT_PDF) $(SUBMIT_ZIP)
