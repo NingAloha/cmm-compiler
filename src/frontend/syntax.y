@@ -44,8 +44,8 @@ TreeNode *syntax_tree_root;
 %%
 Program:
     ExtDefList {
-        $$ = tree_new("Program", NULL,
-            $1 != NULL ? $1->line : yylineno);
+        int program_line = $1 != NULL ? $1->line : yylineno;
+        $$ = tree_new("Program", NULL, program_line);
         tree_add_child($$, $1);
         syntax_tree_root = $$;
     }

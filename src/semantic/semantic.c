@@ -12,6 +12,16 @@ typedef struct SemanticContext {
   int error_count;
 } SemanticContext;
 
+static void semantic_context_init(SemanticContext *context) {
+  symbol_table_init(&context->symbols);
+  context->current_return_type = NULL;
+  context->error_count = 0;
+}
+
+static void semantic_context_clear(SemanticContext *context) {
+  symbol_table_clear(&context->symbols);
+}
+
 /* AST helpers */
 
 static const TreeNode *child_at(const TreeNode *node, int index) {
@@ -124,16 +134,14 @@ int semantic_analyze(const TreeNode *root) {
   }
 
   SemanticContext context;
-
-  symbol_table_init(&context.symbols);
-  context.current_return_type = NULL;
-  context.error_count = 0;
+  semantic_context_init(&context);
 
   analyze_program(&context, root);
 
-  symbol_table_clear(&context.symbols);
+  int error_count = context.error_count;
+  semantic_context_clear(&context);
 
-  return context.error_count;
+  return error_count;
 }
 
 /* Top-level program analysis */

@@ -4,6 +4,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+static void symbol_free(Symbol *symbol) {
+  if (symbol == NULL) {
+    return;
+  }
+
+  free(symbol->name);
+  free(symbol);
+}
+
 /* Lifetime */
 
 void symbol_table_init(SymbolTable *table) {
@@ -22,8 +31,7 @@ void symbol_table_clear(SymbolTable *table) {
 
   while (current != NULL) {
     Symbol *next = current->next;
-    free(current->name);
-    free(current);
+    symbol_free(current);
     current = next;
   }
 
@@ -139,8 +147,7 @@ void symbol_table_leave_scope(SymbolTable *table) {
           previous->next = next;
         }
 
-        free(current->name);
-        free(current);
+        symbol_free(current);
         current = next;
       } else {
         previous = current;

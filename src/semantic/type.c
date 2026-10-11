@@ -9,6 +9,16 @@ static Type int_type = {.kind = TYPE_INT};
 static Type float_type = {.kind = TYPE_FLOAT};
 static Type error_type = {.kind = TYPE_ERROR};
 
+static Type *type_allocate(TypeKind kind) {
+  Type *type = malloc(sizeof(*type));
+
+  if (type != NULL) {
+    type->kind = kind;
+  }
+
+  return type;
+}
+
 /* Shared primitive types */
 
 Type *type_int(void) { return &int_type; }
@@ -20,26 +30,22 @@ Type *type_error(void) { return &error_type; }
 /* Type and field construction */
 
 Type *type_new_array(Type *element_type, size_t length) {
-  Type *type = malloc(sizeof(*type));
-
+  Type *type = type_allocate(TYPE_ARRAY);
   if (type == NULL) {
     return NULL;
   }
 
-  type->kind = TYPE_ARRAY;
   type->as.array.element_type = element_type;
   type->as.array.length = length;
   return type;
 }
 
 Type *type_new_structure(const char *tag, Field *fields) {
-  Type *type = malloc(sizeof(*type));
-
+  Type *type = type_allocate(TYPE_STRUCT);
   if (type == NULL) {
     return NULL;
   }
 
-  type->kind = TYPE_STRUCT;
   type->as.structure.tag = string_duplicate(tag);
   if (tag != NULL && type->as.structure.tag == NULL) {
     free(type);
@@ -51,13 +57,11 @@ Type *type_new_structure(const char *tag, Field *fields) {
 }
 
 Type *type_new_function(Type *return_type, Field *parameters) {
-  Type *type = malloc(sizeof(*type));
-
+  Type *type = type_allocate(TYPE_FUNCTION);
   if (type == NULL) {
     return NULL;
   }
 
-  type->kind = TYPE_FUNCTION;
   type->as.function.return_type = return_type;
   type->as.function.parameters = parameters;
   return type;

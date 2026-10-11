@@ -11,13 +11,13 @@ extern int syntax_error;
 int yyparse(void);
 
 int main(int argc, char *argv[]) {
-  int print_tree = 0;
+  int tree_mode = 0;
   const char *source_path = NULL;
 
   if (argc == 2) {
     source_path = argv[1];
   } else if (argc == 3 && strcmp(argv[1], "--tree") == 0) {
-    print_tree = 1;
+    tree_mode = 1;
     source_path = argv[2];
   } else {
     fprintf(stderr, "Usage: %s [--tree] <source.cmm>\n", argv[0]);
@@ -33,9 +33,10 @@ int main(int argc, char *argv[]) {
   int parse_status = yyparse();
   fclose(yyin);
 
-  if (parse_status == 0 && !lexical_error && !syntax_error &&
-      syntax_tree_root != NULL) {
-    if (print_tree) {
+  int parse_succeeded = parse_status == 0 && !lexical_error && !syntax_error &&
+                        syntax_tree_root != NULL;
+  if (parse_succeeded) {
+    if (tree_mode) {
       tree_print(syntax_tree_root, 0);
     } else {
       (void)semantic_analyze(syntax_tree_root);

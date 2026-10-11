@@ -43,6 +43,12 @@ static void report_illegal_floating_point_number(const char *text) {
             yylineno, text);
 }
 
+static void report_unterminated_comment(void) {
+    lexical_error = 1;
+    fprintf(stdout, "Error type A at Line %d: Unterminated comment.\n",
+            comment_start_line);
+}
+
 static int make_int_token(const char *text) {
     char decimal[32];
     unsigned long value = strtoul(text, NULL, 0);
@@ -109,10 +115,7 @@ DEC_INT [0-9]+
     /* 忽略注释中的普通字符。 */
 }
 <COMMENT><<EOF>> {
-    lexical_error = 1;
-    fprintf(stdout,
-        "Error type A at Line %d: Unterminated comment.\n",
-        comment_start_line);
+    report_unterminated_comment();
     return 0;
 }
 

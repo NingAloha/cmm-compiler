@@ -56,15 +56,13 @@ void tree_add_child(TreeNode *parent, TreeNode *child) {
 
 /* Traversal and cleanup */
 
-void tree_print(const TreeNode *node, int depth) {
-  if (node == NULL) {
-    return;
-  }
-
-  for (int i = 0; i < depth; i++) {
+static void print_indentation(int depth) {
+  for (int level = 0; level < depth; level++) {
     printf("  ");
   }
+}
 
+static void print_node(const TreeNode *node) {
   if (node->text != NULL && node->text[0] != '\0') {
     printf("%s: %s\n", node->name, node->text);
   } else if (node->text != NULL) {
@@ -74,6 +72,15 @@ void tree_print(const TreeNode *node, int depth) {
   } else {
     printf("%s\n", node->name);
   }
+}
+
+void tree_print(const TreeNode *node, int depth) {
+  if (node == NULL) {
+    return;
+  }
+
+  print_indentation(depth);
+  print_node(node);
 
   tree_print(node->first_child, depth + 1);
   tree_print(node->next_sibling, depth);
