@@ -1,8 +1,16 @@
-build/
-parser
-report.*
-submit.zip
+# Build outputs
+/build/
+/parser
+
+# Course-assignment submission artifacts
+/report.*
+/submit.zip
 *.pdf
+
+# Local references and formatting overrides
 *Makefile_ref
-.clang-format
-parser
+/.clang-format
+
+# Local IDE metadata
+/.idea/
+.DS_Store
