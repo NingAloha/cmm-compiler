@@ -2,12 +2,12 @@
 #define TREE_H
 
 typedef struct TreeNode {
-    char *name;
-    char *text;
-    int line;
-    struct TreeNode *first_child;
-    struct TreeNode *last_child;
-    struct TreeNode *next_sibling;
+  char *name;
+  char *text;
+  int line;
+  struct TreeNode *first_child;
+  struct TreeNode *last_child;
+  struct TreeNode *next_sibling;
 } TreeNode;
 
 /* Construction */

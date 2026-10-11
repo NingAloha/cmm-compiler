@@ -4,26 +4,26 @@
 #include "type.h"
 
 typedef enum SymbolKind {
-    SYMBOL_VARIABLE,
-    SYMBOL_FUNCTION,
-    SYMBOL_STRUCT
+  SYMBOL_VARIABLE,
+  SYMBOL_FUNCTION,
+  SYMBOL_STRUCT
 } SymbolKind;
 
 typedef struct Symbol Symbol;
 typedef struct SymbolTable SymbolTable;
 
 struct Symbol {
-    char *name;
-    SymbolKind kind;
-    Type *type;
-    int line;
-    int scope_depth;
-    Symbol *next;
+  char *name;
+  SymbolKind kind;
+  Type *type;
+  int line;
+  int scope_depth;
+  Symbol *next;
 };
 
 struct SymbolTable {
-    Symbol *head;
-    int scope_depth;
+  Symbol *head;
+  int scope_depth;
 };
 
 /* Lifetime */

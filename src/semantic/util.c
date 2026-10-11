@@ -4,16 +4,16 @@
 #include <string.h>
 
 char *string_duplicate(const char *source) {
-    if (source == NULL) {
-        return NULL;
-    }
+  if (source == NULL) {
+    return NULL;
+  }
 
-    size_t size = strlen(source) + 1;
-    char *copy = malloc(size);
+  size_t size = strlen(source) + 1;
+  char *copy = malloc(size);
 
-    if (copy != NULL) {
-        memcpy(copy, source, size);
-    }
+  if (copy != NULL) {
+    memcpy(copy, source, size);
+  }
 
-    return copy;
+  return copy;
 }

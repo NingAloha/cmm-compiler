@@ -4,43 +4,43 @@
 #include <stddef.h>
 
 typedef enum TypeKind {
-    TYPE_INT,
-    TYPE_FLOAT,
-    TYPE_ARRAY,
-    TYPE_STRUCT,
-    TYPE_FUNCTION,
-    TYPE_ERROR
+  TYPE_INT,
+  TYPE_FLOAT,
+  TYPE_ARRAY,
+  TYPE_STRUCT,
+  TYPE_FUNCTION,
+  TYPE_ERROR
 } TypeKind;
 
 typedef struct Type Type;
 typedef struct Field Field;
 
 struct Field {
-    char *name;
-    Type *type;
-    int line;
-    Field *next;
+  char *name;
+  Type *type;
+  int line;
+  Field *next;
 };
 
 struct Type {
-    TypeKind kind;
+  TypeKind kind;
 
-    union {
-        struct {
-            Type *element_type;
-            size_t length;
-        } array;
+  union {
+    struct {
+      Type *element_type;
+      size_t length;
+    } array;
 
-        struct {
-            char *tag;
-            Field *fields;
-        } structure;
+    struct {
+      char *tag;
+      Field *fields;
+    } structure;
 
-        struct {
-            Type *return_type;
-            Field *parameters;
-        } function;
-    } as;
+    struct {
+      Type *return_type;
+      Field *parameters;
+    } function;
+  } as;
 };
 
 /* Shared primitive types */
