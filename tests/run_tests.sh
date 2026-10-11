@@ -11,6 +11,7 @@ parser=$1
 manifest=$2
 mode=${3-}
 stage_name=$(basename "$(dirname "$manifest")")
+suite_name="$stage_name/cases"
 passed=0
 total=0
 has_failure=0
@@ -44,7 +45,7 @@ while IFS='|' read -r test_file expected_status expected_pattern; do
         passed=$((passed + 1))
     else
         has_failure=1
-        printf '%s: FAIL %s\n' "$stage_name" "$test_file"
+        printf '%s: FAIL %s\n' "$suite_name" "$test_file"
         printf '  expected exit status: %s\n' "$expected_status"
         printf '  expected output pattern: %s\n' "$expected_pattern"
         printf '  actual exit status: %s\n' "$actual_status"
@@ -55,5 +56,5 @@ while IFS='|' read -r test_file expected_status expected_pattern; do
     rm -f "$output_file"
 done <"$manifest"
 
-printf '%s: %d/%d passed\n' "$stage_name" "$passed" "$total"
+printf '%s: %d/%d passed\n' "$suite_name" "$passed" "$total"
 exit "$has_failure"

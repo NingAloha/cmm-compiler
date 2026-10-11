@@ -3,12 +3,19 @@
 
 #include "../../src/semantic/symbol.h"
 
-int main(void) {
+static void test_initialization(void) {
   SymbolTable table;
 
   symbol_table_init(&table);
   assert(table.head == NULL);
   assert(table.scope_depth == 0);
+
+  symbol_table_clear(&table);
+}
+
+static void test_global_symbols(void) {
+  SymbolTable table;
+  symbol_table_init(&table);
 
   assert(symbol_table_insert(&table, "count", SYMBOL_VARIABLE, type_int(), 3));
 
@@ -48,6 +55,15 @@ int main(void) {
   assert(point->type == point_type);
 
   assert(symbol_table_find(&table, "missing") == NULL);
+
+  symbol_table_clear(&table);
+}
+
+static void test_nested_scope_shadowing(void) {
+  SymbolTable table;
+  symbol_table_init(&table);
+
+  assert(symbol_table_insert(&table, "count", SYMBOL_VARIABLE, type_int(), 3));
 
   assert(table.scope_depth == 0);
   assert(symbol_table_find_current(&table, "count") != NULL);
@@ -89,7 +105,7 @@ int main(void) {
   symbol_table_leave_scope(&table);
   assert(table.scope_depth == 0);
 
-  count = symbol_table_find(&table, "count");
+  const Symbol *count = symbol_table_find(&table, "count");
   assert(count != NULL);
   assert(count->type == type_int());
   assert(count->scope_depth == 0);
@@ -97,12 +113,28 @@ int main(void) {
   assert(symbol_table_find_current(&table, "count") == count);
 
   symbol_table_clear(&table);
+}
+
+static void test_clear(void) {
+  SymbolTable table;
+  symbol_table_init(&table);
+
+  assert(symbol_table_insert(&table, "count", SYMBOL_VARIABLE, type_int(), 3));
+
+  symbol_table_clear(&table);
   assert(table.head == NULL);
   assert(table.scope_depth == 0);
   assert(symbol_table_find(&table, "count") == NULL);
 
   symbol_table_clear(&table);
+}
 
-  puts("symbol table tests passed");
+int main(void) {
+  test_initialization();
+  test_global_symbols();
+  test_nested_scope_shadowing();
+  test_clear();
+
+  puts("stage-02/symbol: passed");
   return 0;
 }

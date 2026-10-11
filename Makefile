@@ -1,3 +1,5 @@
+# Toolchain
+
 CC := gcc
 FLEX := flex
 BISON := bison
@@ -6,30 +8,54 @@ WEASYPRINT := weasyprint
 ZIP := zip
 CLANG_FORMAT := clang-format
 
-CFLAGS := -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Isrc/frontend
-TEST_STAGES := 01 02
-TEST_TARGETS := $(addprefix test-,$(TEST_STAGES))
+# Compilation
+
+CPPFLAGS := -Isrc/frontend -Isrc/semantic
+CFLAGS := -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra
+
+# Build paths
 
 BUILD_DIR := build
+TARGET := $(BUILD_DIR)/parser
+ROOT_TARGET := parser
+
+# Compiler sources
+
 PARSER_SPEC := src/frontend/syntax.y
 PARSER_SOURCE := $(BUILD_DIR)/syntax.tab.c
 LEXER_SPEC := src/frontend/lexer.l
 LEXER_SOURCE := $(BUILD_DIR)/lex.yy.c
 DRIVER_SOURCE := src/driver/main.c
 TREE_SOURCE := src/frontend/tree.c
-TARGET := $(BUILD_DIR)/parser
-ROOT_TARGET := parser
-TEST_RUNNER := tests/run_tests.sh
-STAGE_01_TEST_MANIFEST := tests/stage-01/expected.tsv
 SEMANTIC_TYPE_SOURCE := src/semantic/type.c
 SEMANTIC_SYMBOL_SOURCE := src/semantic/symbol.c
 SEMANTIC_ANALYZER_SOURCE := src/semantic/semantic.c
 SEMANTIC_UTIL_SOURCE := src/semantic/util.c
+
+PARSER_SOURCES := $(PARSER_SOURCE) $(TREE_SOURCE) $(DRIVER_SOURCE) \
+	$(SEMANTIC_ANALYZER_SOURCE) $(SEMANTIC_TYPE_SOURCE) \
+	$(SEMANTIC_SYMBOL_SOURCE) $(SEMANTIC_UTIL_SOURCE)
+
+# Tests
+
+TEST_STAGES := 01 02
+TEST_TARGETS := $(addprefix test-,$(TEST_STAGES))
+TEST_RUNNER := tests/run_tests.sh
+STAGE_01_TEST_MANIFEST := tests/stage-01/expected.tsv
 STAGE_02_TYPE_TEST_SOURCE := tests/stage-02/test_type.c
 STAGE_02_TYPE_TEST := $(BUILD_DIR)/test_type
 STAGE_02_SYMBOL_TEST_SOURCE := tests/stage-02/test_symbol.c
 STAGE_02_SYMBOL_TEST := $(BUILD_DIR)/test_symbol
 STAGE_02_SEMANTIC_MANIFEST := tests/stage-02/semantic_expected.tsv
+
+STAGE_02_TYPE_TEST_SOURCES := $(STAGE_02_TYPE_TEST_SOURCE) \
+	$(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_UTIL_SOURCE)
+STAGE_02_SYMBOL_TEST_SOURCES := $(STAGE_02_SYMBOL_TEST_SOURCE) \
+	$(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_SYMBOL_SOURCE) \
+	$(SEMANTIC_UTIL_SOURCE)
+
+# Course submission
+
 COURSEWORK_DIR := coursework
 REPORT_SOURCE := $(COURSEWORK_DIR)/report.md
 REPORT_STYLE := $(COURSEWORK_DIR)/report.css
@@ -51,12 +77,8 @@ $(PARSER_SOURCE): $(PARSER_SPEC) | $(BUILD_DIR)
 $(LEXER_SOURCE): $(LEXER_SPEC) $(PARSER_SOURCE) | $(BUILD_DIR)
 	$(FLEX) -o $@ $<
 
-$(TARGET): $(PARSER_SOURCE) $(LEXER_SOURCE) $(TREE_SOURCE) $(DRIVER_SOURCE) \
-	$(SEMANTIC_ANALYZER_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_SYMBOL_SOURCE) \
-	$(SEMANTIC_UTIL_SOURCE)
-	$(CC) $(CFLAGS) -Isrc/semantic -o $@ $(PARSER_SOURCE) $(TREE_SOURCE) \
-		$(DRIVER_SOURCE) $(SEMANTIC_ANALYZER_SOURCE) $(SEMANTIC_TYPE_SOURCE) \
-		$(SEMANTIC_SYMBOL_SOURCE) $(SEMANTIC_UTIL_SOURCE)
+$(TARGET): $(PARSER_SOURCES) $(LEXER_SOURCE)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $(PARSER_SOURCES)
 
 $(ROOT_TARGET): $(TARGET)
 	ln -sf $(TARGET) $@
@@ -76,11 +98,11 @@ format:
 	@command -v $(CLANG_FORMAT) >/dev/null 2>&1 || { echo "clang-format is not installed. Run: brew install clang-format" >&2; exit 1; }
 	find src tests -type f \( -name '*.c' -o -name '*.h' \) -print0 | xargs -0 $(CLANG_FORMAT) -i
 
-$(STAGE_02_TYPE_TEST): $(STAGE_02_TYPE_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_UTIL_SOURCE) src/semantic/type.h src/semantic/util.h | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -Isrc/semantic -o $@ $(STAGE_02_TYPE_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_UTIL_SOURCE)
+$(STAGE_02_TYPE_TEST): $(STAGE_02_TYPE_TEST_SOURCES) src/semantic/type.h src/semantic/util.h | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $(STAGE_02_TYPE_TEST_SOURCES)
 
-$(STAGE_02_SYMBOL_TEST): $(STAGE_02_SYMBOL_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_SYMBOL_SOURCE) $(SEMANTIC_UTIL_SOURCE) src/semantic/type.h src/semantic/symbol.h src/semantic/util.h | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -Isrc/semantic -o $@ $(STAGE_02_SYMBOL_TEST_SOURCE) $(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_SYMBOL_SOURCE) $(SEMANTIC_UTIL_SOURCE)
+$(STAGE_02_SYMBOL_TEST): $(STAGE_02_SYMBOL_TEST_SOURCES) src/semantic/type.h src/semantic/symbol.h src/semantic/util.h | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $(STAGE_02_SYMBOL_TEST_SOURCES)
 
 $(REPORT_PDF): $(REPORT_SOURCE) $(REPORT_STYLE) | $(BUILD_DIR)
 	$(PANDOC) $(REPORT_SOURCE) --standalone --embed-resources --syntax-highlighting=none --metadata lang=zh-Hans --css $(REPORT_STYLE) -o $(REPORT_HTML)

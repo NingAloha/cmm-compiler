@@ -1,6 +1,6 @@
 # Stage 01 测试用例
 
-这些用例面向实验一的词法分析、语法分析和语法树输出。目录按预期结果分类：
+这些用例面向实验一的词法分析、语法分析和语法树输出。`cases/` 下的目录按预期结果分类：
 
 - `valid/`：应以状态码 0 结束并打印语法树。
 - `invalid/lexical/`：应以状态码 0 结束，并至少报告表中对应的 A 类错误。
@@ -11,8 +11,8 @@
 也可先执行 `make`，再逐个运行：
 
 ```bash
-./build/parser --tree tests/stage-01/valid/01-minimal-function.cmm
-./build/parser --tree tests/stage-01/invalid/lexical/02-invalid-octal.cmm
+./build/parser --tree tests/stage-01/cases/valid/01-minimal-function.cmm
+./build/parser --tree tests/stage-01/cases/invalid/lexical/02-invalid-octal.cmm
 ```
 
 错误信息的说明文字可以不同；验收重点是错误类型与行号。对于含多个错误的文件，恢复策略可能影响后续错误的数量，因此表格只承诺至少出现的首个目标错误。

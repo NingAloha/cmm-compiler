@@ -11,9 +11,9 @@ make test-02
 预期末尾输出：
 
 ```text
-type tests passed
-symbol table tests passed
-stage-02: 35/35 passed
+stage-02/type: passed
+stage-02/symbol: passed
+stage-02/cases: 35/35 passed
 ```
 
 ## 测试层次
@@ -21,7 +21,7 @@ stage-02: 35/35 passed
 - `test_type.c`：共享基础类型、数值类型、数组维度与长度规则、结构体名等价；
 - `test_symbol.c`：初始化、插入、当前作用域与可见符号查询、重复符号拒绝、作用域清理；
 - `semantic_expected.tsv`：端到端清单。每行格式为 `源文件|预期退出码|输出正则`，由 `tests/run_tests.sh` 执行；
-- `cases/`：按声明、表达式、函数、数组、控制流和结构体分类的 C-- 输入文件，具体分类见 [cases/README.md](cases/README.md)。
+- `cases/`：先按 `valid/`、`invalid/` 区分预期结果，再按声明、表达式、函数、数组、控制流和结构体分类的 C-- 输入文件，具体分类见 [cases/README.md](cases/README.md)。
 
 清单中的 `__EMPTY__` 表示标准输出必须完全为空，用于验证合法程序不会误报错误；其他条目使用正则检查目标错误类型和行号。测试不会把本地结果当作课程平台成绩，只用于在修改后防止既有行为回退。
 
