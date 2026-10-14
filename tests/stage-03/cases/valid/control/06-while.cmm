@@ -1,0 +1,7 @@
+int main() {
+  int index = 0;
+  while (index < 3) {
+    index = index + 1;
+  }
+  return index;
+}

@@ -1,0 +1,5 @@
+int main() {
+  int values[3];
+  values[1] = 7;
+  return values[1];
+}

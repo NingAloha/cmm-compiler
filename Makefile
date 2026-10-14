@@ -10,7 +10,7 @@ CLANG_FORMAT := clang-format
 
 # Compilation
 
-CPPFLAGS := -Isrc/frontend -Isrc/semantic
+CPPFLAGS := -Isrc/frontend
 CFLAGS := -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra
 
 # Build paths
@@ -18,6 +18,7 @@ CFLAGS := -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra
 BUILD_DIR := build
 TARGET := $(BUILD_DIR)/parser
 ROOT_TARGET := parser
+COURSE_TARGET := cc
 
 # Compiler sources
 
@@ -31,22 +32,30 @@ SEMANTIC_TYPE_SOURCE := src/semantic/type.c
 SEMANTIC_SYMBOL_SOURCE := src/semantic/symbol.c
 SEMANTIC_ANALYZER_SOURCE := src/semantic/semantic.c
 SEMANTIC_UTIL_SOURCE := src/semantic/util.c
+IR_EMITTER_SOURCE := src/ir/ir.c
+IR_GENERATOR_SOURCE := src/ir/generator.c
 
 PARSER_SOURCES := $(PARSER_SOURCE) $(TREE_SOURCE) $(DRIVER_SOURCE) \
 	$(SEMANTIC_ANALYZER_SOURCE) $(SEMANTIC_TYPE_SOURCE) \
-	$(SEMANTIC_SYMBOL_SOURCE) $(SEMANTIC_UTIL_SOURCE)
+	$(SEMANTIC_SYMBOL_SOURCE) $(SEMANTIC_UTIL_SOURCE) \
+	$(IR_EMITTER_SOURCE) $(IR_GENERATOR_SOURCE)
 
 # Tests
 
-TEST_STAGES := 01 02
+TEST_STAGES := 01 02 03
 TEST_TARGETS := $(addprefix test-,$(TEST_STAGES))
 TEST_RUNNER := tests/run_tests.sh
+IR_TEST_RUNNER := tests/run_ir_tests.sh
 STAGE_01_TEST_MANIFEST := tests/stage-01/expected.tsv
 STAGE_02_TYPE_TEST_SOURCE := tests/stage-02/test_type.c
 STAGE_02_TYPE_TEST := $(BUILD_DIR)/test_type
 STAGE_02_SYMBOL_TEST_SOURCE := tests/stage-02/test_symbol.c
 STAGE_02_SYMBOL_TEST := $(BUILD_DIR)/test_symbol
 STAGE_02_SEMANTIC_MANIFEST := tests/stage-02/semantic_expected.tsv
+STAGE_03_IR_TEST_SOURCE := tests/stage-03/test_ir.c
+STAGE_03_IR_TEST := $(BUILD_DIR)/test_ir
+STAGE_03_IR_TEST_SOURCES := $(STAGE_03_IR_TEST_SOURCE) src/ir/ir.c
+STAGE_03_IR_MANIFEST := tests/stage-03/expected.tsv
 
 STAGE_02_TYPE_TEST_SOURCES := $(STAGE_02_TYPE_TEST_SOURCE) \
 	$(SEMANTIC_TYPE_SOURCE) $(SEMANTIC_UTIL_SOURCE)
@@ -66,7 +75,7 @@ SUBMIT_ZIP := $(COURSEWORK_DIR)/submit.zip
 
 .PHONY: all clean pack format test $(TEST_TARGETS) $(REPORT_PDF)
 
-all: $(TARGET) $(ROOT_TARGET)
+all: $(TARGET) $(ROOT_TARGET) $(COURSE_TARGET)
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -83,6 +92,9 @@ $(TARGET): $(PARSER_SOURCES) $(LEXER_SOURCE)
 $(ROOT_TARGET): $(TARGET)
 	ln -sf $(TARGET) $@
 
+$(COURSE_TARGET): $(TARGET)
+	ln -sf $(TARGET) $@
+
 test: $(TEST_TARGETS)
 
 test-01: $(TARGET) $(TEST_RUNNER) $(STAGE_01_TEST_MANIFEST)
@@ -93,6 +105,14 @@ test-02: $(STAGE_02_TYPE_TEST) $(STAGE_02_SYMBOL_TEST) $(TARGET) \
 	@$(STAGE_02_TYPE_TEST)
 	@$(STAGE_02_SYMBOL_TEST)
 	@sh $(TEST_RUNNER) $(TARGET) $(STAGE_02_SEMANTIC_MANIFEST)
+
+test-03: $(STAGE_03_IR_TEST) $(TARGET) $(IR_TEST_RUNNER) $(STAGE_03_IR_MANIFEST)
+	@$(STAGE_03_IR_TEST)
+	@printf '%s\n' 'stage-03/ir: passed'
+	@sh $(IR_TEST_RUNNER) $(TARGET) $(STAGE_03_IR_MANIFEST)
+
+$(STAGE_03_IR_TEST): $(STAGE_03_IR_TEST_SOURCES) src/ir/ir.h | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $(STAGE_03_IR_TEST_SOURCES)
 
 format:
 	@command -v $(CLANG_FORMAT) >/dev/null 2>&1 || { echo "clang-format is not installed. Run: brew install clang-format" >&2; exit 1; }
@@ -120,5 +140,5 @@ pack: $(REPORT_PDF)
 
 clean:
 	rm -rf $(BUILD_DIR)
-	rm -f $(ROOT_TARGET)
+	rm -f $(ROOT_TARGET) $(COURSE_TARGET)
 	rm -f $(REPORT_PDF) $(SUBMIT_ZIP)

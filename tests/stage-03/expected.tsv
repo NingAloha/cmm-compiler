@@ -1,0 +1,8 @@
+# C-- 源文件路径（相对项目根目录）|预期 IR 文件路径（相对项目根目录）
+tests/stage-03/cases/valid/expressions/01-basic-return.cmm|tests/stage-03/expected/expressions/01-basic-return.ir
+tests/stage-03/cases/valid/variables/02-assignment.cmm|tests/stage-03/expected/variables/02-assignment.ir
+tests/stage-03/cases/valid/functions/03-arguments.cmm|tests/stage-03/expected/functions/03-arguments.ir
+tests/stage-03/cases/valid/control/04-branch-and-io.cmm|tests/stage-03/expected/control/04-branch-and-io.ir
+tests/stage-03/cases/valid/arrays/05-one-dimensional.cmm|tests/stage-03/expected/arrays/05-one-dimensional.ir
+tests/stage-03/cases/valid/control/06-while.cmm|tests/stage-03/expected/control/06-while.ir
+tests/stage-03/cases/valid/functions/07-recursion.cmm|tests/stage-03/expected/functions/07-recursion.ir

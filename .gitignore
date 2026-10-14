@@ -1,6 +1,7 @@
 # Build outputs
 /build/
 /parser
+/cc
 
 # Local course materials and generated submission artifacts
 /coursework/

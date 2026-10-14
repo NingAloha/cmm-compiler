@@ -1,0 +1,7 @@
+int subtract(int left, int right) {
+  return left - right;
+}
+
+int main() {
+  return subtract(10, 3);
+}

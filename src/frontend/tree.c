@@ -63,6 +63,11 @@ static void print_indentation(int depth) {
 }
 
 static void print_node(const TreeNode *node) {
+  if (strcmp(node->name, "RELOP") == 0) {
+    printf("RELOP\n");
+    return;
+  }
+
   if (node->text != NULL && node->text[0] != '\0') {
     printf("%s: %s\n", node->name, node->text);
   } else if (node->text != NULL) {

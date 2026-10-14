@@ -16,6 +16,19 @@ static void semantic_context_init(SemanticContext *context) {
   symbol_table_init(&context->symbols);
   context->current_return_type = NULL;
   context->error_count = 0;
+
+  Type *read_type = type_new_function(type_int(), NULL);
+  if (read_type != NULL) {
+    (void)symbol_table_insert(&context->symbols, "read", SYMBOL_FUNCTION,
+                              read_type, 0);
+  }
+
+  Field *write_parameter = field_new("value", type_int(), 0);
+  Type *write_type = type_new_function(type_int(), write_parameter);
+  if (write_type != NULL) {
+    (void)symbol_table_insert(&context->symbols, "write", SYMBOL_FUNCTION,
+                              write_type, 0);
+  }
 }
 
 static void semantic_context_clear(SemanticContext *context) {

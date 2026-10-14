@@ -1,0 +1,10 @@
+int main() {
+  int value;
+  value = read();
+  if (value > 0 && value < 10) {
+    write(value);
+  } else {
+    write(0);
+  }
+  return 0;
+}

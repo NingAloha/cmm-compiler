@@ -119,10 +119,10 @@ DEC_INT [0-9]+
     return 0;
 }
 
-">=" { return make_token(RELOP, "RELOP", ""); }
-"<=" { return make_token(RELOP, "RELOP", ""); }
-"==" { return make_token(RELOP, "RELOP", ""); }
-"!=" { return make_token(RELOP, "RELOP", ""); }
+">=" { return make_token(RELOP, "RELOP", yytext); }
+"<=" { return make_token(RELOP, "RELOP", yytext); }
+"==" { return make_token(RELOP, "RELOP", yytext); }
+"!=" { return make_token(RELOP, "RELOP", yytext); }
 
 "&&" { return make_token(AND, "AND", ""); }
 "||" { return make_token(OR, "OR", ""); }
@@ -143,8 +143,8 @@ DEC_INT [0-9]+
 "." { return make_token(DOT, "DOT", ""); }
 "!" { return make_token(NOT, "NOT", ""); }
 
-">"  { return make_token(RELOP, "RELOP", ""); }
-"<"  { return make_token(RELOP, "RELOP", ""); }
+">"  { return make_token(RELOP, "RELOP", yytext); }
+"<"  { return make_token(RELOP, "RELOP", yytext); }
 
 {BAD_FLOAT_DOTS} {
     report_illegal_floating_point_number(yytext);
