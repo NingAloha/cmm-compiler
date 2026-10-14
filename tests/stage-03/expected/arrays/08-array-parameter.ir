@@ -1,0 +1,21 @@
+FUNCTION add_first_two :
+PARAM v1
+t1 := #0 * #4
+t2 := v1 + t1
+t3 := *t2
+t4 := #1 * #4
+t5 := v1 + t4
+t6 := *t5
+t7 := t3 + t6
+RETURN t7
+FUNCTION main :
+DEC v2 8
+t8 := #0 * #4
+t9 := &v2 + t8
+*t9 := #20
+t10 := #1 * #4
+t11 := &v2 + t10
+*t11 := #22
+ARG &v2
+t12 := CALL add_first_two
+RETURN t12

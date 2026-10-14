@@ -2,14 +2,24 @@
 
 #include <errno.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define OPERAND_CAPACITY 128
 
+typedef struct {
+  const TreeNode *id;
+  size_t *dimensions;
+  size_t dimension_count;
+} ArrayShape;
+
 struct IrVariable {
   char *source_name;
   char ir_name[OPERAND_CAPACITY];
+  size_t *dimensions;
+  size_t dimension_count;
+  int is_array_parameter;
   struct IrVariable *next;
 };
 
@@ -65,8 +75,8 @@ static int set_operand(IrGenerator *generator, char *result, size_t result_size,
   return 1;
 }
 
-static const char *variable_lookup(const IrGenerator *generator,
-                                   const char *source_name) {
+static const IrVariable *variable_find(const IrGenerator *generator,
+                                       const char *source_name) {
   if (generator == NULL || source_name == NULL) {
     return NULL;
   }
@@ -74,16 +84,74 @@ static const char *variable_lookup(const IrGenerator *generator,
   for (const IrVariable *variable = generator->variables; variable != NULL;
        variable = variable->next) {
     if (strcmp(variable->source_name, source_name) == 0) {
-      return variable->ir_name;
+      return variable;
     }
   }
   return NULL;
 }
 
+static void array_shape_clear(ArrayShape *shape) {
+  if (shape == NULL) {
+    return;
+  }
+
+  free(shape->dimensions);
+  shape->dimensions = NULL;
+  shape->dimension_count = 0;
+  shape->id = NULL;
+}
+
+static int array_shape_add_dimension(ArrayShape *shape, size_t length) {
+  if (shape == NULL || length == 0 ||
+      shape->dimension_count == SIZE_MAX / sizeof(*shape->dimensions)) {
+    return 0;
+  }
+
+  size_t new_count = shape->dimension_count + 1;
+  size_t *dimensions =
+      realloc(shape->dimensions, new_count * sizeof(*shape->dimensions));
+  if (dimensions == NULL) {
+    return 0;
+  }
+
+  shape->dimensions = dimensions;
+  shape->dimensions[shape->dimension_count] = length;
+  shape->dimension_count = new_count;
+  return 1;
+}
+
+static int parse_var_dec(const TreeNode *node, ArrayShape *shape) {
+  const TreeNode *child_0 = child_at(node, 0);
+
+  if (node == NULL || shape == NULL || !node_is(node, "VarDec")) {
+    return 0;
+  }
+  if (node_is(child_0, "ID") && child_at(node, 1) == NULL) {
+    shape->id = child_0;
+    return child_0->text != NULL;
+  }
+
+  const TreeNode *length = child_at(node, 2);
+  if (!node_is(child_0, "VarDec") || !node_is(child_at(node, 1), "LB") ||
+      !node_is(length, "INT") || !node_is(child_at(node, 3), "RB") ||
+      child_at(node, 4) != NULL || length->text == NULL ||
+      !parse_var_dec(child_0, shape)) {
+    return 0;
+  }
+
+  errno = 0;
+  char *end = NULL;
+  unsigned long value = strtoul(length->text, &end, 10);
+  return errno != ERANGE && end != length->text && *end == '\0' &&
+                 value > 0 && value <= SIZE_MAX &&
+                 array_shape_add_dimension(shape, (size_t)value);
+}
+
 static int variable_declare(IrGenerator *generator, const char *source_name,
+                            const ArrayShape *shape, int is_array_parameter,
                             char *result, size_t result_size) {
   if (generator == NULL || source_name == NULL ||
-      variable_lookup(generator, source_name) != NULL) {
+      shape == NULL || variable_find(generator, source_name) != NULL) {
     return generator_fail(generator);
   }
 
@@ -100,11 +168,26 @@ static int variable_declare(IrGenerator *generator, const char *source_name,
   }
   memcpy(variable->source_name, source_name, name_length + 1);
 
+  if (shape->dimension_count > 0) {
+    variable->dimensions =
+        malloc(shape->dimension_count * sizeof(*variable->dimensions));
+    if (variable->dimensions == NULL) {
+      free(variable->source_name);
+      free(variable);
+      return generator_fail(generator);
+    }
+    memcpy(variable->dimensions, shape->dimensions,
+           shape->dimension_count * sizeof(*variable->dimensions));
+    variable->dimension_count = shape->dimension_count;
+  }
+  variable->is_array_parameter = is_array_parameter;
+
   int written = snprintf(variable->ir_name, sizeof(variable->ir_name), "v%u",
                          generator->next_variable);
   if (written < 0 || (size_t)written >= sizeof(variable->ir_name) ||
       !set_operand(generator, result, result_size, variable->ir_name)) {
     free(variable->source_name);
+    free(variable->dimensions);
     free(variable);
     return generator_fail(generator);
   }
@@ -135,6 +218,7 @@ void ir_generator_clear(IrGenerator *generator) {
   while (variable != NULL) {
     IrVariable *next = variable->next;
     free(variable->source_name);
+    free(variable->dimensions);
     free(variable);
     variable = next;
   }
@@ -183,14 +267,6 @@ static int int_specifier(const TreeNode *node) {
          type->text != NULL && strcmp(type->text, "int") == 0;
 }
 
-static const TreeNode *simple_var_id(const TreeNode *node) {
-  const TreeNode *id = child_at(node, 0);
-  return node_is(node, "VarDec") && node_is(id, "ID") &&
-                 child_at(node, 1) == NULL
-             ? id
-             : NULL;
-}
-
 static int translate_exp(IrGenerator *generator, const TreeNode *node,
                          char *result, size_t result_size);
 static int translate_cond(IrGenerator *generator, const TreeNode *node,
@@ -220,29 +296,197 @@ static int translate_boolean_value(IrGenerator *generator, const TreeNode *node,
   return set_operand(generator, result, result_size, value);
 }
 
+typedef struct {
+  const TreeNode *id;
+  const TreeNode **indices;
+  size_t index_count;
+} ArrayAccess;
+
+static void array_access_clear(ArrayAccess *access) {
+  if (access == NULL) {
+    return;
+  }
+
+  free(access->indices);
+  access->indices = NULL;
+  access->index_count = 0;
+  access->id = NULL;
+}
+
+static int array_access_add_index(ArrayAccess *access, const TreeNode *index) {
+  if (access == NULL || index == NULL ||
+      access->index_count == SIZE_MAX / sizeof(*access->indices)) {
+    return 0;
+  }
+
+  size_t new_count = access->index_count + 1;
+  const TreeNode **indices =
+      realloc(access->indices, new_count * sizeof(*access->indices));
+  if (indices == NULL) {
+    return 0;
+  }
+
+  access->indices = indices;
+  access->indices[access->index_count] = index;
+  access->index_count = new_count;
+  return 1;
+}
+
+static int collect_array_access(const TreeNode *node, ArrayAccess *access) {
+  const TreeNode *child_0 = child_at(node, 0);
+
+  if (node == NULL || access == NULL || !node_is(node, "Exp")) {
+    return 0;
+  }
+  if (node_is(child_0, "ID") && child_at(node, 1) == NULL) {
+    access->id = child_0;
+    return child_0->text != NULL;
+  }
+
+  const TreeNode *index = child_at(node, 2);
+  return node_is(child_0, "Exp") && node_is(child_at(node, 1), "LB") &&
+                 node_is(index, "Exp") && node_is(child_at(node, 3), "RB") &&
+                 child_at(node, 4) == NULL &&
+                 collect_array_access(child_0, access) &&
+                 array_access_add_index(access, index);
+}
+
+static int array_stride(const IrVariable *variable, size_t index,
+                        size_t *result) {
+  if (variable == NULL || result == NULL || index >= variable->dimension_count) {
+    return 0;
+  }
+
+  size_t stride = 4;
+  for (size_t dimension = variable->dimension_count; dimension > index + 1;
+       dimension--) {
+    size_t length = variable->dimensions[dimension - 1];
+    if (length == 0 || stride > SIZE_MAX / length) {
+      return 0;
+    }
+    stride *= length;
+  }
+  *result = stride;
+  return 1;
+}
+
+static int array_total_bytes(const ArrayShape *shape, size_t *result) {
+  if (shape == NULL || result == NULL || shape->dimension_count == 0) {
+    return 0;
+  }
+
+  size_t total = 4;
+  for (size_t index = 0; index < shape->dimension_count; index++) {
+    if (shape->dimensions[index] == 0 ||
+        total > SIZE_MAX / shape->dimensions[index]) {
+      return 0;
+    }
+    total *= shape->dimensions[index];
+  }
+  *result = total;
+  return 1;
+}
+
 static int translate_array_address(IrGenerator *generator, const TreeNode *node,
-                                   char *result, size_t result_size) {
-  const TreeNode *base_exp = child_at(node, 0);
-  const TreeNode *index_exp = child_at(node, 2);
-  const TreeNode *base_id = child_at(base_exp, 0);
-  const char *base = NULL;
-  char index[OPERAND_CAPACITY];
+                                   char *result, size_t result_size,
+                                   size_t *remaining_dimensions) {
+  ArrayAccess access = {0};
+  const IrVariable *variable = NULL;
   char offset[OPERAND_CAPACITY];
   char address[OPERAND_CAPACITY];
+  int succeeded = 0;
 
-  if (!node_is(node, "Exp") || !node_is(child_at(node, 1), "LB") ||
-      !node_is(index_exp, "Exp") || !node_is(child_at(node, 3), "RB") ||
-      child_at(node, 4) != NULL || !node_is(base_exp, "Exp") ||
-      !node_is(base_id, "ID") || child_at(base_exp, 1) != NULL ||
-      (base = variable_lookup(generator, base_id->text)) == NULL ||
-      !translate_exp(generator, index_exp, index, sizeof(index)) ||
-      !ir_new_temp(&generator->ir, offset, sizeof(offset)) ||
-      !ir_new_temp(&generator->ir, address, sizeof(address)) ||
-      !ir_emit(&generator->ir, "%s := %s * #4", offset, index) ||
-      !ir_emit(&generator->ir, "%s := &%s + %s", address, base, offset)) {
-    return generator_fail(generator);
+  if (!collect_array_access(node, &access) || access.id == NULL ||
+      (variable = variable_find(generator, access.id->text)) == NULL ||
+      variable->dimension_count == 0 ||
+      access.index_count == 0 || access.index_count > variable->dimension_count) {
+    goto done;
   }
-  return set_operand(generator, result, result_size, address);
+
+  for (size_t position = 0; position < access.index_count; position++) {
+    char index[OPERAND_CAPACITY];
+    char term[OPERAND_CAPACITY];
+    size_t stride = 0;
+
+    if (!translate_exp(generator, access.indices[position], index, sizeof(index)) ||
+        !array_stride(variable, position, &stride) ||
+        !ir_new_temp(&generator->ir, term, sizeof(term)) ||
+        !ir_emit(&generator->ir, "%s := %s * #%zu", term, index, stride)) {
+      goto done;
+    }
+
+    if (position == 0) {
+      if (!set_operand(generator, offset, sizeof(offset), term)) {
+        goto done;
+      }
+    } else {
+      char sum[OPERAND_CAPACITY];
+      if (!ir_new_temp(&generator->ir, sum, sizeof(sum)) ||
+          !ir_emit(&generator->ir, "%s := %s + %s", sum, offset, term) ||
+          !set_operand(generator, offset, sizeof(offset), sum)) {
+        goto done;
+      }
+    }
+  }
+
+  if (!ir_new_temp(&generator->ir, address, sizeof(address)) ||
+      !ir_emit(&generator->ir, "%s := %s%s + %s", address,
+               variable->is_array_parameter ? "" : "&", variable->ir_name,
+               offset) ||
+      !set_operand(generator, result, result_size, address)) {
+    goto done;
+  }
+  if (remaining_dimensions != NULL) {
+    *remaining_dimensions = variable->dimension_count - access.index_count;
+  }
+  succeeded = 1;
+
+done:
+  array_access_clear(&access);
+  return succeeded ? 1 : generator_fail(generator);
+}
+
+static int translate_argument(IrGenerator *generator, const TreeNode *node,
+                              char *result, size_t result_size) {
+  const TreeNode *argument = node;
+
+  while (node_is(argument, "Exp") && node_is(child_at(argument, 0), "LP") &&
+         node_is(child_at(argument, 1), "Exp") &&
+         node_is(child_at(argument, 2), "RP") && child_at(argument, 3) == NULL) {
+    argument = child_at(argument, 1);
+  }
+
+  const TreeNode *id = child_at(argument, 0);
+
+  if (node_is(argument, "Exp") && node_is(id, "ID") &&
+      child_at(argument, 1) == NULL) {
+    const IrVariable *variable = variable_find(generator, id->text);
+    if (variable != NULL && variable->dimension_count > 0) {
+      if (variable->is_array_parameter) {
+        return set_operand(generator, result, result_size, variable->ir_name);
+      }
+
+      char address[OPERAND_CAPACITY];
+      int written = snprintf(address, sizeof(address), "&%s", variable->ir_name);
+      return written < 0 || (size_t)written >= sizeof(address)
+                 ? generator_fail(generator)
+                 : set_operand(generator, result, result_size, address);
+    }
+  }
+
+  if (node_is(argument, "Exp") && node_is(child_at(argument, 0), "Exp") &&
+      node_is(child_at(argument, 1), "LB")) {
+    size_t remaining_dimensions = 0;
+    if (!translate_array_address(generator, argument, result, result_size,
+                                 &remaining_dimensions)) {
+      return generator_fail(generator);
+    }
+    if (remaining_dimensions > 0) {
+      return 1;
+    }
+  }
+
+  return translate_exp(generator, argument, result, result_size);
 }
 
 static int translate_args(IrGenerator *generator, const TreeNode *node) {
@@ -252,7 +496,7 @@ static int translate_args(IrGenerator *generator, const TreeNode *node) {
   char argument[OPERAND_CAPACITY];
 
   if (!node_is(node, "Args") || !node_is(first, "Exp") ||
-      !translate_exp(generator, first, argument, sizeof(argument))) {
+      !translate_argument(generator, first, argument, sizeof(argument))) {
     return generator_fail(generator);
   }
 
@@ -339,9 +583,10 @@ static int translate_exp(IrGenerator *generator, const TreeNode *node,
     return set_integer_operand(generator, result, result_size, child_0->text);
   }
   if (node_is(child_0, "ID") && child_1 == NULL) {
-    const char *variable = variable_lookup(generator, child_0->text);
-    return variable == NULL ? generator_fail(generator)
-                            : set_operand(generator, result, result_size, variable);
+    const IrVariable *variable = variable_find(generator, child_0->text);
+    return variable == NULL || variable->dimension_count > 0
+               ? generator_fail(generator)
+               : set_operand(generator, result, result_size, variable->ir_name);
   }
   if (node_is(child_0, "LP") && node_is(child_1, "Exp") &&
       node_is(child_2, "RP") && child_3 == NULL) {
@@ -353,7 +598,10 @@ static int translate_exp(IrGenerator *generator, const TreeNode *node,
   if (node_is(child_0, "Exp") && node_is(child_1, "LB")) {
     char address[OPERAND_CAPACITY];
     char value[OPERAND_CAPACITY];
-    if (!translate_array_address(generator, node, address, sizeof(address)) ||
+    size_t remaining_dimensions = 0;
+    if (!translate_array_address(generator, node, address, sizeof(address),
+                                 &remaining_dimensions) ||
+        remaining_dimensions != 0 ||
         !ir_new_temp(&generator->ir, value, sizeof(value)) ||
         !ir_emit(&generator->ir, "%s := *%s", value, address)) {
       return generator_fail(generator);
@@ -382,13 +630,18 @@ static int translate_exp(IrGenerator *generator, const TreeNode *node,
       return generator_fail(generator);
     }
     if (node_is(child_at(child_0, 0), "ID") && child_at(child_0, 1) == NULL) {
-      const char *left = variable_lookup(generator, child_at(child_0, 0)->text);
-      if (left == NULL || !ir_emit(&generator->ir, "%s := %s", left, right)) {
+      const IrVariable *left =
+          variable_find(generator, child_at(child_0, 0)->text);
+      if (left == NULL || left->dimension_count > 0 ||
+          !ir_emit(&generator->ir, "%s := %s", left->ir_name, right)) {
         return generator_fail(generator);
       }
     } else if (node_is(child_at(child_0, 1), "LB")) {
       char address[OPERAND_CAPACITY];
-      if (!translate_array_address(generator, child_0, address, sizeof(address)) ||
+      size_t remaining_dimensions = 0;
+      if (!translate_array_address(generator, child_0, address, sizeof(address),
+                                   &remaining_dimensions) ||
+          remaining_dimensions != 0 ||
           !ir_emit(&generator->ir, "*%s := %s", address, right)) {
         return generator_fail(generator);
       }
@@ -484,47 +737,42 @@ static int translate_dec(IrGenerator *generator, const TreeNode *node) {
   const TreeNode *var_dec = child_at(node, 0);
   const TreeNode *assign = child_at(node, 1);
   const TreeNode *initializer = child_at(node, 2);
-  const TreeNode *id = simple_var_id(var_dec);
+  ArrayShape shape = {0};
   char variable[OPERAND_CAPACITY];
+  int succeeded = 0;
 
-  if (!node_is(node, "Dec") || !node_is(var_dec, "VarDec")) {
-    return generator_fail(generator);
+  if (!node_is(node, "Dec") || !node_is(var_dec, "VarDec") ||
+      !parse_var_dec(var_dec, &shape) || shape.id == NULL ||
+      !variable_declare(generator, shape.id->text, &shape, 0, variable,
+                        sizeof(variable))) {
+    goto done;
   }
-  if (id != NULL) {
-    if (!variable_declare(generator, id->text, variable, sizeof(variable))) {
-      return generator_fail(generator);
-    }
+
+  if (shape.dimension_count == 0) {
     if (assign == NULL && initializer == NULL) {
-      return 1;
+      succeeded = 1;
+      goto done;
     }
     char value[OPERAND_CAPACITY];
     if (!node_is(assign, "ASSIGNOP") || !node_is(initializer, "Exp") ||
         !translate_exp(generator, initializer, value, sizeof(value)) ||
         !ir_emit(&generator->ir, "%s := %s", variable, value)) {
-      return generator_fail(generator);
+      goto done;
     }
-    return 1;
+    succeeded = 1;
+    goto done;
   }
 
-  const TreeNode *inner = child_at(var_dec, 0);
-  const TreeNode *length = child_at(var_dec, 2);
-  id = simple_var_id(inner);
-  if (id == NULL || !node_is(child_at(var_dec, 1), "LB") ||
-      !node_is(length, "INT") || !node_is(child_at(var_dec, 3), "RB") ||
-      child_at(var_dec, 4) != NULL || assign != NULL || initializer != NULL) {
-    return generator_fail(generator);
+  size_t bytes = 0;
+  if (assign != NULL || initializer != NULL || !array_total_bytes(&shape, &bytes) ||
+      !ir_emit(&generator->ir, "DEC %s %zu", variable, bytes)) {
+    goto done;
   }
+  succeeded = 1;
 
-  errno = 0;
-  char *end = NULL;
-  long element_count = strtol(length->text, &end, 0);
-  if (errno == ERANGE || end == length->text || *end != '\0' ||
-      element_count <= 0 || element_count > INT_MAX / 4 ||
-      !variable_declare(generator, id->text, variable, sizeof(variable)) ||
-      !ir_emit(&generator->ir, "DEC %s %ld", variable, element_count * 4)) {
-    return generator_fail(generator);
-  }
-  return 1;
+done:
+  array_shape_clear(&shape);
+  return succeeded ? 1 : generator_fail(generator);
 }
 
 static int translate_dec_list(IrGenerator *generator, const TreeNode *node) {
@@ -654,14 +902,23 @@ static int translate_comp_st(IrGenerator *generator, const TreeNode *node) {
 }
 
 static int translate_param_dec(IrGenerator *generator, const TreeNode *node) {
-  const TreeNode *id = simple_var_id(child_at(node, 1));
+  ArrayShape shape = {0};
   char variable[OPERAND_CAPACITY];
+  int succeeded = 0;
+
   if (!node_is(node, "ParamDec") || !int_specifier(child_at(node, 0)) ||
-      id == NULL || !variable_declare(generator, id->text, variable, sizeof(variable)) ||
+      !parse_var_dec(child_at(node, 1), &shape) || shape.id == NULL ||
+      shape.dimension_count > 1 ||
+      !variable_declare(generator, shape.id->text, &shape,
+                        shape.dimension_count == 1, variable, sizeof(variable)) ||
       !ir_emit(&generator->ir, "PARAM %s", variable)) {
-    return generator_fail(generator);
+    goto done;
   }
-  return 1;
+  succeeded = 1;
+
+done:
+  array_shape_clear(&shape);
+  return succeeded ? 1 : generator_fail(generator);
 }
 
 static int translate_var_list(IrGenerator *generator, const TreeNode *node) {

@@ -4,11 +4,22 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "lexer.h"
 #include "syntax.tab.h"
 #include "tree.h"
 
 static int comment_start_line;
 int lexical_error = 0;
+int source_has_comment = 0;
+int source_has_extended_integer = 0;
+int source_has_float = 0;
+
+void lexer_reset_features(void) {
+    lexical_error = 0;
+    source_has_comment = 0;
+    source_has_extended_integer = 0;
+    source_has_float = 0;
+}
 
 static int make_token(int token, const char *name, const char *text) {
     yylval.node = tree_new(name, text, yylineno);
@@ -89,7 +100,7 @@ DEC_INT [0-9]+
 %%
 
 "int"   { return make_token(TYPE, "TYPE", yytext); }
-"float" { return make_token(TYPE, "TYPE", yytext); }
+"float" { source_has_float = 1; return make_token(TYPE, "TYPE", yytext); }
 
 "struct" { return make_token(STRUCT, "STRUCT", ""); }
 "return" { return make_token(RETURN, "RETURN", ""); }
@@ -100,8 +111,9 @@ DEC_INT [0-9]+
 [ \t\r]+ { /* 忽略空格、Tab 和回车。 */ }
 \n { /* yylineno 会自动把行号加一。 */ }
 
-"//".* { /* 忽略从 // 到该行结尾的全部内容。 */ }
+"//".* { source_has_comment = 1; /* 忽略从 // 到该行结尾的全部内容。 */ }
 "/*" {
+    source_has_comment = 1;
     comment_start_line = yylineno;
     BEGIN(COMMENT);
 }
@@ -166,13 +178,13 @@ DEC_INT [0-9]+
     report_illegal_floating_point_number(yytext);
 }
 
-{FLOAT_LITERAL} { return make_float_token(yytext); }
+{FLOAT_LITERAL} { source_has_float = 1; return make_float_token(yytext); }
 
-{HEX_INT} { return make_int_token(yytext); }
+{HEX_INT} { source_has_extended_integer = 1; return make_int_token(yytext); }
 {BAD_HEX} {
     report_illegal_hexadecimal_number(yytext);
 }
-{OCT_INT} { return make_int_token(yytext); }
+{OCT_INT} { source_has_extended_integer = 1; return make_int_token(yytext); }
 {BAD_OCT} {
     report_illegal_octal_number(yytext);
 }

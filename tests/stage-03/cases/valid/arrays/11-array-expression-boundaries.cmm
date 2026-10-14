@@ -1,0 +1,15 @@
+int identity(int input_value) {
+  return input_value;
+}
+
+int main() {
+  int first[2], second[2], result_value;
+  first[0] = read();
+  first[1] = 2;
+  second[0] = first[0] + first[1];
+  result_value = identity(second[0]);
+  if (result_value == 3) {
+    write(result_value);
+  }
+  return result_value;
+}

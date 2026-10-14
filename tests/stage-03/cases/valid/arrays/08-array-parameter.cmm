@@ -1,0 +1,10 @@
+int add_first_two(int values[2]) {
+  return values[0] + values[1];
+}
+
+int main() {
+  int numbers[2];
+  numbers[0] = 20;
+  numbers[1] = 22;
+  return add_first_two(numbers);
+}

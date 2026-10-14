@@ -1,0 +1,4 @@
+int main() {
+  // Comments are outside the Stage 03 mandatory input assumptions.
+  return 0;
+}

@@ -1,0 +1,37 @@
+FUNCTION identity :
+PARAM v1
+RETURN v1
+FUNCTION main :
+DEC v2 8
+DEC v3 8
+READ t1
+t2 := #0 * #4
+t3 := &v2 + t2
+*t3 := t1
+t4 := #1 * #4
+t5 := &v2 + t4
+*t5 := #2
+t6 := #0 * #4
+t7 := &v2 + t6
+t8 := *t7
+t9 := #1 * #4
+t10 := &v2 + t9
+t11 := *t10
+t12 := t8 + t11
+t13 := #0 * #4
+t14 := &v3 + t13
+*t14 := t12
+t15 := #0 * #4
+t16 := &v3 + t15
+t17 := #0 * #4
+t18 := &v3 + t17
+t19 := *t18
+ARG t19
+t20 := CALL identity
+v4 := t20
+IF v4 == #3 GOTO label1
+GOTO label2
+LABEL label1 :
+WRITE v4
+LABEL label2 :
+RETURN v4

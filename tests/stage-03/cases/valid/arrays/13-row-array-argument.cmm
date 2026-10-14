@@ -1,0 +1,11 @@
+int sum_row(int row[3]) {
+  return row[0] + row[1] + row[2];
+}
+
+int main() {
+  int matrix[2][3];
+  matrix[1][0] = 10;
+  matrix[1][1] = 20;
+  matrix[1][2] = 12;
+  return sum_row(matrix[1]);
+}

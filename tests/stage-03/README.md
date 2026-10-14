@@ -12,6 +12,7 @@ IR 文件，因此金标准输出放在 `expected/`。
 | `cases/valid/` | 已通过语义分析的 C-- 输入程序，按功能域组织。 |
 | `expected/` | 与每个 C-- 输入逐字对应的预期 `.ir` 文件。 |
 | `expected.tsv` | 映射 `源文件|预期 IR 文件`，供后续 IR 回归执行器读取。 |
+| `rejected.tsv` | 列出违反实验三固定假设、必须拒绝且不得生成 IR 的输入。 |
 
 在项目根目录运行：
 
@@ -25,12 +26,14 @@ make test-03
 stage-03/ir: passed
 ```
 
-当前七个样例覆盖整数立即数与运算符优先级、局部变量和赋值、函数参数
+当前十三个样例覆盖整数立即数与运算符优先级、局部变量和赋值、函数参数
 的逆序 `ARG`、短路条件与 `read/write`、一维数组的地址/解引用、`while`
-循环与递归调用。
+循环与递归调用，以及选做 3.2 的一维数组形参和高维数组；还覆盖混合数组声明、
+数组元素的链式赋值，以及将高维数组的一行作为一维数组实参。
 `tests/run_ir_tests.sh` 会读取 `expected.tsv`，以 `parser 源文件 目标.ir` 的
 Stage 03 调用方式生成临时 IR，再与金标准逐字比较，并输出与前两阶段一致的：
 
 ```text
-stage-03/cases: 7/7 passed
+stage-03/cases: 13/13 passed
+stage-03/rejections: 3/3 passed
 ```

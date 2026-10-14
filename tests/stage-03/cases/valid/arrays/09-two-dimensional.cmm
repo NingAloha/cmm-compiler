@@ -1,0 +1,5 @@
+int main() {
+  int grid[2][3];
+  grid[1][2] = 42;
+  return grid[1][2];
+}

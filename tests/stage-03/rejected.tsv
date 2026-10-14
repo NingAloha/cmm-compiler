@@ -1,0 +1,4 @@
+# 违反实验三假设 1 的输入必须失败，且不得产生 IR 文件。
+tests/stage-03/cases/invalid/assumption-1/comment.cmm
+tests/stage-03/cases/invalid/assumption-1/hexadecimal.cmm
+tests/stage-03/cases/invalid/assumption-1/floating-point.cmm
