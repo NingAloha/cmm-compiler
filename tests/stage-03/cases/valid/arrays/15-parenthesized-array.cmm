@@ -1,0 +1,12 @@
+int head(int values[2]) {
+  return ((values))[0];
+}
+
+int main() {
+  int matrix[2][2];
+  matrix[0][0] = 7;
+  matrix[0][1] = 9;
+  write(((matrix)[0])[1]);
+  write(head((matrix[0])));
+  return 0;
+}

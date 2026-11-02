@@ -150,8 +150,7 @@ static int parse_var_dec(const TreeNode *node, ArrayShape *shape) {
 static int variable_declare(IrGenerator *generator, const char *source_name,
                             const ArrayShape *shape, int is_array_parameter,
                             char *result, size_t result_size) {
-  if (generator == NULL || source_name == NULL ||
-      shape == NULL || variable_find(generator, source_name) != NULL) {
+  if (generator == NULL || source_name == NULL || shape == NULL) {
     return generator_fail(generator);
   }
 
@@ -338,6 +337,10 @@ static int collect_array_access(const TreeNode *node, ArrayAccess *access) {
   if (node == NULL || access == NULL || !node_is(node, "Exp")) {
     return 0;
   }
+  if (node_is(child_0, "LP") && node_is(child_at(node, 1), "Exp") &&
+      node_is(child_at(node, 2), "RP") && child_at(node, 3) == NULL) {
+    return collect_array_access(child_at(node, 1), access);
+  }
   if (node_is(child_0, "ID") && child_at(node, 1) == NULL) {
     access->id = child_0;
     return child_0->text != NULL;
@@ -484,6 +487,12 @@ static int translate_argument(IrGenerator *generator, const TreeNode *node,
     if (remaining_dimensions > 0) {
       return 1;
     }
+    char value[OPERAND_CAPACITY];
+    if (!ir_new_temp(&generator->ir, value, sizeof(value)) ||
+        !ir_emit(&generator->ir, "%s := *%s", value, result)) {
+      return generator_fail(generator);
+    }
+    return set_operand(generator, result, result_size, value);
   }
 
   return translate_exp(generator, argument, result, result_size);

@@ -1,0 +1,11 @@
+int identity(int value) {
+  return value;
+}
+
+int main() {
+  int data[2];
+  data[0] = 11;
+  data[1] = 22;
+  write(identity(data[read()]));
+  return 0;
+}

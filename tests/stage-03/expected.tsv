@@ -12,3 +12,5 @@ tests/stage-03/cases/valid/arrays/10-optional-3-2.cmm|tests/stage-03/expected/ar
 tests/stage-03/cases/valid/arrays/11-array-expression-boundaries.cmm|tests/stage-03/expected/arrays/11-array-expression-boundaries.ir
 tests/stage-03/cases/valid/arrays/12-array-nested-assignment.cmm|tests/stage-03/expected/arrays/12-array-nested-assignment.ir
 tests/stage-03/cases/valid/arrays/13-row-array-argument.cmm|tests/stage-03/expected/arrays/13-row-array-argument.ir
+tests/stage-03/cases/valid/arrays/14-array-argument-side-effect.cmm|tests/stage-03/expected/arrays/14-array-argument-side-effect.ir
+tests/stage-03/cases/valid/arrays/15-parenthesized-array.cmm|tests/stage-03/expected/arrays/15-parenthesized-array.ir

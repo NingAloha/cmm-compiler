@@ -1,0 +1,19 @@
+FUNCTION identity :
+PARAM v1
+RETURN v1
+FUNCTION main :
+DEC v2 8
+t1 := #0 * #4
+t2 := &v2 + t1
+*t2 := #11
+t3 := #1 * #4
+t4 := &v2 + t3
+*t4 := #22
+READ t5
+t6 := t5 * #4
+t7 := &v2 + t6
+t8 := *t7
+ARG t8
+t9 := CALL identity
+WRITE t9
+RETURN #0

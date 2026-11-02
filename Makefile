@@ -3,8 +3,7 @@
 CC := gcc
 FLEX := flex
 BISON := bison
-PANDOC := pandoc
-WEASYPRINT := weasyprint
+XELATEX := xelatex
 ZIP := zip
 CLANG_FORMAT := clang-format
 
@@ -68,9 +67,7 @@ STAGE_02_SYMBOL_TEST_SOURCES := $(STAGE_02_SYMBOL_TEST_SOURCE) \
 # Course submission
 
 COURSEWORK_DIR := coursework
-REPORT_SOURCE := $(COURSEWORK_DIR)/report.md
-REPORT_STYLE := $(COURSEWORK_DIR)/report.css
-REPORT_HTML := $(BUILD_DIR)/report.html
+REPORT_SOURCE := $(COURSEWORK_DIR)/report.tex
 REPORT_PDF := $(COURSEWORK_DIR)/report.pdf
 PACKAGE_DIR := $(BUILD_DIR)/submission
 SUBMIT_ZIP := $(COURSEWORK_DIR)/submit.zip
@@ -129,9 +126,10 @@ $(STAGE_02_TYPE_TEST): $(STAGE_02_TYPE_TEST_SOURCES) src/semantic/type.h src/sem
 $(STAGE_02_SYMBOL_TEST): $(STAGE_02_SYMBOL_TEST_SOURCES) src/semantic/type.h src/semantic/symbol.h src/semantic/util.h | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $(STAGE_02_SYMBOL_TEST_SOURCES)
 
-$(REPORT_PDF): $(REPORT_SOURCE) $(REPORT_STYLE) | $(BUILD_DIR)
-	$(PANDOC) $(REPORT_SOURCE) --standalone --embed-resources --syntax-highlighting=none --metadata lang=zh-Hans --css $(REPORT_STYLE) -o $(REPORT_HTML)
-	$(WEASYPRINT) $(REPORT_HTML) $@
+$(REPORT_PDF): $(REPORT_SOURCE) | $(BUILD_DIR)
+	$(XELATEX) -interaction=nonstopmode -output-directory=$(BUILD_DIR) $<
+	$(XELATEX) -interaction=nonstopmode -output-directory=$(BUILD_DIR) $<
+	cp $(BUILD_DIR)/report.pdf $@
 
 pack: $(REPORT_PDF)
 	rm -rf $(PACKAGE_DIR)
@@ -144,6 +142,6 @@ pack: $(REPORT_PDF)
 	$(ZIP) -T $(SUBMIT_ZIP)
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) $(COURSEWORK_DIR)/build
 	rm -f $(ROOT_TARGET) $(COURSE_TARGET)
 	rm -f $(REPORT_PDF) $(SUBMIT_ZIP)

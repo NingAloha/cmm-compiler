@@ -11,19 +11,6 @@ extern TreeNode *syntax_tree_root;
 extern int syntax_error;
 int yyparse(void);
 
-static int copy_stream(FILE *input, FILE *output) {
-  char buffer[4096];
-  size_t count = 0;
-
-  while ((count = fread(buffer, 1, sizeof(buffer), input)) > 0) {
-    if (fwrite(buffer, 1, count, output) != count) {
-      return 0;
-    }
-  }
-
-  return ferror(input) == 0;
-}
-
 static int ir_input_supported(void) {
   return !source_has_comment && !source_has_extended_integer &&
          !source_has_float;
@@ -83,10 +70,10 @@ int main(int argc, char *argv[]) {
       int semantic_error_count = semantic_analyze(syntax_tree_root);
 
       if (ir_mode && semantic_error_count == 0) {
-        FILE *ir_output = tmpfile();
+        FILE *ir_output = fopen(ir_path, "w");
 
         if (ir_output == NULL) {
-          perror("tmpfile");
+          perror(ir_path);
           exit_status = 1;
         } else {
           IrGenerator generator;
@@ -95,27 +82,14 @@ int main(int argc, char *argv[]) {
           int generated = ir_generate_program(&generator, syntax_tree_root);
           ir_generator_clear(&generator);
 
-          if (!generated) {
-            fprintf(stderr, "Failed to generate IR.\n");
-            exit_status = 1;
-          } else {
-            FILE *final_output = fopen(ir_path, "w");
-
-            if (final_output == NULL) {
-              perror(ir_path);
-              exit_status = 1;
-            } else {
-              rewind(ir_output);
-              if (!copy_stream(ir_output, final_output) ||
-                  fclose(final_output) == EOF) {
-                perror(ir_path);
-                exit_status = 1;
-              }
-            }
+          if (fclose(ir_output) == EOF) {
+            perror(ir_path);
+            generated = 0;
           }
 
-          if (fclose(ir_output) == EOF) {
-            perror("tmpfile");
+          if (!generated) {
+            fprintf(stderr, "Failed to generate IR.\n");
+            remove(ir_path);
             exit_status = 1;
           }
         }

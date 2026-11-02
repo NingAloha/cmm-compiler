@@ -23,12 +23,10 @@ t14 := &v3 + t13
 *t14 := t12
 t15 := #0 * #4
 t16 := &v3 + t15
-t17 := #0 * #4
-t18 := &v3 + t17
-t19 := *t18
-ARG t19
-t20 := CALL identity
-v4 := t20
+t17 := *t16
+ARG t17
+t18 := CALL identity
+v4 := t18
 IF v4 == #3 GOTO label1
 GOTO label2
 LABEL label1 :
