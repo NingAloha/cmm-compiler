@@ -10,18 +10,18 @@
 #define OPERAND_CAPACITY 128
 
 typedef struct {
-  const TreeNode *id;
-  size_t *dimensions;
-  size_t dimension_count;
+	const TreeNode *id;
+	size_t *dimensions;
+	size_t dimension_count;
 } ArrayShape;
 
 struct IrVariable {
-  char *source_name;
-  char ir_name[OPERAND_CAPACITY];
-  size_t *dimensions;
-  size_t dimension_count;
-  int is_array_parameter;
-  struct IrVariable *next;
+	char *source_name;
+	char ir_name[OPERAND_CAPACITY];
+	size_t *dimensions;
+	size_t dimension_count;
+	int is_array_parameter;
+	struct IrVariable *next;
 };
 
 /* generator.c: state, variables and error handling */

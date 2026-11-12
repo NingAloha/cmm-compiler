@@ -163,7 +163,7 @@ format:
 		exit 1; }
 	find src tests -type f \( -name '*.c' -o -name '*.h' \) -print0 | \
 		xargs -0 $(CLANG_FORMAT) -i
-	find tests -type f -name '*.sh' -print0 | xargs -0 $(SHFMT) -i 2 -w
+	find tests -type f -name '*.sh' -print0 | xargs -0 $(SHFMT) -i 0 -w
 
 # Course submission
 

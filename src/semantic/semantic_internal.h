@@ -8,9 +8,9 @@
 #include "type.h"
 
 typedef struct SemanticContext {
-  SymbolTable symbols;
-  Type *current_return_type;
-  int error_count;
+	SymbolTable symbols;
+	Type *current_return_type;
+	int error_count;
 } SemanticContext;
 
 /* semantic.c: context and error reporting */

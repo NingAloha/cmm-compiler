@@ -9,10 +9,10 @@
 typedef struct IrVariable IrVariable;
 
 typedef struct {
-  IrContext ir;
-  IrVariable *variables;
-  unsigned int next_variable;
-  int failed;
+	IrContext ir;
+	IrVariable *variables;
+	unsigned int next_variable;
+	int failed;
 } IrGenerator;
 
 void ir_generator_init(IrGenerator *generator, FILE *output);
