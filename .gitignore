@@ -6,9 +6,6 @@
 # Local course materials and generated submission artifacts
 /coursework/
 
-# Local references and formatting overrides
-/.clang-format
-
 # Local IDE metadata
 /.idea/
 /.zed

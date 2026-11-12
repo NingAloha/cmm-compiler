@@ -6,6 +6,7 @@ BISON := bison
 XELATEX := xelatex
 ZIP := zip
 CLANG_FORMAT := clang-format
+SHFMT := shfmt
 
 # Compilation
 
@@ -157,8 +158,12 @@ format:
 	@command -v $(CLANG_FORMAT) >/dev/null 2>&1 || { \
 		echo "clang-format is not installed. Run: brew install clang-format" >&2; \
 		exit 1; }
+	@command -v $(SHFMT) >/dev/null 2>&1 || { \
+		echo "shfmt is not installed. Run: brew install shfmt" >&2; \
+		exit 1; }
 	find src tests -type f \( -name '*.c' -o -name '*.h' \) -print0 | \
 		xargs -0 $(CLANG_FORMAT) -i
+	find tests -type f -name '*.sh' -print0 | xargs -0 $(SHFMT) -i 2 -w
 
 # Course submission
 
