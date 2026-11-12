@@ -5,6 +5,7 @@ FLEX := flex
 BISON := bison
 XELATEX := xelatex
 ZIP := zip
+OPEN := open
 CLANG_FORMAT := clang-format
 SHFMT := shfmt
 
@@ -90,7 +91,7 @@ REPORT_PDF := $(COURSEWORK_DIR)/report.pdf
 PACKAGE_DIR := $(BUILD_DIR)/submission
 SUBMIT_ZIP := $(COURSEWORK_DIR)/submit.zip
 
-.PHONY: all clean pack format test $(TEST_TARGETS) $(REPORT_PDF)
+.PHONY: all clean pack format test report $(TEST_TARGETS) $(REPORT_PDF)
 
 all: $(TARGET) $(ROOT_TARGET) $(COURSE_TARGET)
 
@@ -178,6 +179,9 @@ $(REPORT_PDF): $(REPORT_SOURCE) | $(BUILD_DIR)
 	$(XELATEX) -interaction=nonstopmode -output-directory=$(BUILD_DIR) $<
 	$(XELATEX) -interaction=nonstopmode -output-directory=$(BUILD_DIR) $<
 	cp $(BUILD_DIR)/report.pdf $@
+
+report: $(REPORT_PDF)
+	$(OPEN) $(REPORT_PDF)
 
 pack: $(REPORT_PDF)
 	rm -rf $(PACKAGE_DIR)
