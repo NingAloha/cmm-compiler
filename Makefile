@@ -28,6 +28,11 @@ LEXER_SPEC := src/frontend/lexer.l
 PARSER_SOURCE := $(BUILD_DIR)/syntax.tab.c
 LEXER_SOURCE := $(BUILD_DIR)/lex.yy.c
 
+# Map module sources (src/x/y.c) to object files (build/obj/x/y.o)
+
+obj_of = $(patsubst src/%.c,$(OBJ_DIR)/%.o,$(1))
+test_obj_of = $(patsubst tests/%.c,$(OBJ_DIR)/tests/%.o,$(1))
+
 # Hand-written sources, grouped by module
 
 FRONTEND_SOURCES := src/frontend/tree.c
@@ -43,8 +48,7 @@ DRIVER_SOURCES := src/driver/main.c
 
 COMPILER_SOURCES := $(FRONTEND_SOURCES) $(SEMANTIC_SOURCES) $(IR_SOURCES) \
 	$(DRIVER_SOURCES)
-COMPILER_OBJECTS := $(OBJ_DIR)/syntax.tab.o \
-	$(patsubst src/%.c,$(OBJ_DIR)/%.o,$(COMPILER_SOURCES))
+COMPILER_OBJECTS := $(OBJ_DIR)/syntax.tab.o $(call obj_of,$(COMPILER_SOURCES))
 
 # Tests
 
@@ -62,13 +66,21 @@ STAGE_02_MANIFEST := tests/stage-02/semantic_expected.tsv
 STAGE_03_MANIFEST := tests/stage-03/expected.tsv
 STAGE_03_REJECTIONS := tests/stage-03/rejected.tsv
 
-# Unit tests: name -> test source plus the module sources it links against
+# Unit tests: each links its test source with the module sources it covers
 
 UNIT_TEST_BIN_DIR := $(BUILD_DIR)/tests
+
 TYPE_TEST := $(UNIT_TEST_BIN_DIR)/test_type
+TYPE_TEST_OBJECTS := $(call test_obj_of,tests/stage-02/test_type.c) \
+	$(call obj_of,src/semantic/type.c src/semantic/util.c)
+
 SYMBOL_TEST := $(UNIT_TEST_BIN_DIR)/test_symbol
+SYMBOL_TEST_OBJECTS := $(call test_obj_of,tests/stage-02/test_symbol.c) \
+	$(call obj_of,$(SEMANTIC_CORE_SOURCES))
+
 IR_TEST := $(UNIT_TEST_BIN_DIR)/test_ir
-UNIT_TESTS := $(TYPE_TEST) $(SYMBOL_TEST) $(IR_TEST)
+IR_TEST_OBJECTS := $(call test_obj_of,tests/stage-03/test_ir.c) \
+	$(call obj_of,$(IR_CORE_SOURCES))
 
 # Course submission
 
@@ -119,18 +131,13 @@ $(COURSE_TARGET): $(TARGET)
 
 # Unit test binaries
 
-obj_of = $(patsubst src/%.c,$(OBJ_DIR)/%.o,$(1))
-
-$(TYPE_TEST): $(OBJ_DIR)/tests/stage-02/test_type.o \
-	$(call obj_of,src/semantic/type.c src/semantic/util.c) | $(UNIT_TEST_BIN_DIR)
+$(TYPE_TEST): $(TYPE_TEST_OBJECTS) | $(UNIT_TEST_BIN_DIR)
 	$(CC) $(CFLAGS) -o $@ $^
 
-$(SYMBOL_TEST): $(OBJ_DIR)/tests/stage-02/test_symbol.o \
-	$(call obj_of,$(SEMANTIC_CORE_SOURCES)) | $(UNIT_TEST_BIN_DIR)
+$(SYMBOL_TEST): $(SYMBOL_TEST_OBJECTS) | $(UNIT_TEST_BIN_DIR)
 	$(CC) $(CFLAGS) -o $@ $^
 
-$(IR_TEST): $(OBJ_DIR)/tests/stage-03/test_ir.o \
-	$(call obj_of,$(IR_CORE_SOURCES)) | $(UNIT_TEST_BIN_DIR)
+$(IR_TEST): $(IR_TEST_OBJECTS) | $(UNIT_TEST_BIN_DIR)
 	$(CC) $(CFLAGS) -o $@ $^
 
 # Test targets
