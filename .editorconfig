@@ -3,17 +3,18 @@ root = true
 [*]
 charset = utf-8
 end_of_line = lf
-indent_style = tab
+indent_style = space
 indent_size = 2
-tab_width = 2
 insert_final_newline = true
 trim_trailing_whitespace = true
+
+# Makefile recipes require tab indentation.
+[Makefile]
+indent_style = tab
 
 # Trailing whitespace may be significant in test inputs and manifests.
 [*.{cmm,tsv}]
 trim_trailing_whitespace = false
 
-# Markdown renders tab-indented lists and code blocks incorrectly.
 [*.md]
-indent_style = space
 trim_trailing_whitespace = false

@@ -5,10 +5,10 @@
 #include <stdio.h>
 
 typedef struct {
-	FILE *output;
-	unsigned int next_temp;
-	unsigned int next_label;
-	int failed;
+  FILE *output;
+  unsigned int next_temp;
+  unsigned int next_label;
+  int failed;
 } IrContext;
 
 void ir_context_init(IrContext *context, FILE *output);
