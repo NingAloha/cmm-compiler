@@ -11,4 +11,5 @@
 
 # Local IDE metadata
 /.idea/
+/.zed
 .DS_Store
