@@ -21,6 +21,39 @@ static char *copy_string(const char *source) {
   return copy;
 }
 
+/* Queries */
+
+const TreeNode *tree_child_at(const TreeNode *node, int index) {
+  if (node == NULL || index < 0) {
+    return NULL;
+  }
+
+  const TreeNode *current = node->first_child;
+  for (int i = 0; current != NULL && i < index; i++) {
+    current = current->next_sibling;
+  }
+  return current;
+}
+
+int tree_is(const TreeNode *node, const char *name) {
+  return node != NULL && node->name != NULL && name != NULL &&
+         strcmp(node->name, name) == 0;
+}
+
+const TreeNode *tree_find_child(const TreeNode *node, const char *name) {
+  if (node == NULL || name == NULL) {
+    return NULL;
+  }
+
+  for (const TreeNode *current = node->first_child; current != NULL;
+       current = current->next_sibling) {
+    if (tree_is(current, name)) {
+      return current;
+    }
+  }
+  return NULL;
+}
+
 /* Construction */
 
 TreeNode *tree_new(const char *name, const char *text, int line) {

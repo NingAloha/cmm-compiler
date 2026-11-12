@@ -1,4 +1,6 @@
 #!/bin/sh
+# Compile cases to IR and compare with the expected IR files.
+# Manifest rows: <source>|<expected IR file>
 
 set -u
 
@@ -7,24 +9,18 @@ if [ "$#" -ne 2 ]; then
     exit 2
 fi
 
+. "$(dirname "$0")/lib.sh"
+
 parser=$1
 manifest=$2
-stage_name=$(basename "$(dirname "$manifest")")
-suite_name="$stage_name/cases"
-passed=0
-total=0
-has_failure=0
+init_counters "$(suite_name_for "$manifest" cases)"
 
 while IFS='|' read -r source_file expected_ir; do
-    case "$source_file" in
-    '' | \#*)
-        continue
-        ;;
-    esac
+    is_skipped_line "$source_file" && continue
 
     total=$((total + 1))
-    actual_ir=$(mktemp "${TMPDIR:-/tmp}/cmm-compiler-ir.XXXXXX") || exit 2
-    diagnostic_output=$(mktemp "${TMPDIR:-/tmp}/cmm-compiler-diagnostic.XXXXXX") || exit 2
+    actual_ir=$(make_temp ir)
+    diagnostic_output=$(make_temp diagnostic)
 
     "$parser" "$source_file" "$actual_ir" >"$diagnostic_output" 2>&1
     actual_status=$?
@@ -39,13 +35,12 @@ while IFS='|' read -r source_file expected_ir; do
         printf '  expected IR file: %s\n' "$expected_ir"
         printf '  actual exit status: %s\n' "$actual_status"
         printf '%s\n' '  diagnostic output:'
-        sed 's/^/    /' "$diagnostic_output"
+        print_indented "$diagnostic_output"
         printf '%s\n' '  actual IR:'
-        sed 's/^/    /' "$actual_ir"
+        print_indented "$actual_ir"
     fi
 
     rm -f "$actual_ir" "$diagnostic_output"
 done <"$manifest"
 
-printf '%s: %d/%d passed\n' "$suite_name" "$passed" "$total"
-exit "$has_failure"
+finish_suite

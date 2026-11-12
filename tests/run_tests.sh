@@ -1,4 +1,6 @@
 #!/bin/sh
+# Run parser/semantic cases listed in a manifest.
+# Manifest rows: <source>|<expected exit status>|<expected output regex>
 
 set -u
 
@@ -7,24 +9,18 @@ if [ "$#" -ne 2 ] && [ "$#" -ne 3 ]; then
     exit 2
 fi
 
+. "$(dirname "$0")/lib.sh"
+
 parser=$1
 manifest=$2
 mode=${3-}
-stage_name=$(basename "$(dirname "$manifest")")
-suite_name="$stage_name/cases"
-passed=0
-total=0
-has_failure=0
+init_counters "$(suite_name_for "$manifest" cases)"
 
 while IFS='|' read -r test_file expected_status expected_pattern; do
-    case "$test_file" in
-    '' | \#*)
-        continue
-        ;;
-    esac
+    is_skipped_line "$test_file" && continue
 
     total=$((total + 1))
-    output_file=$(mktemp "${TMPDIR:-/tmp}/cmm-compiler-test.XXXXXX") || exit 2
+    output_file=$(make_temp output)
 
     if [ "$mode" = "--tree" ]; then
         "$parser" --tree "$test_file" >"$output_file" 2>&1
@@ -49,12 +45,11 @@ while IFS='|' read -r test_file expected_status expected_pattern; do
         printf '  expected exit status: %s\n' "$expected_status"
         printf '  expected output pattern: %s\n' "$expected_pattern"
         printf '  actual exit status: %s\n' "$actual_status"
-        printf '  actual output:\n'
-        sed 's/^/    /' "$output_file"
+        printf '%s\n' '  actual output:'
+        print_indented "$output_file"
     fi
 
     rm -f "$output_file"
 done <"$manifest"
 
-printf '%s: %d/%d passed\n' "$suite_name" "$passed" "$total"
-exit "$has_failure"
+finish_suite

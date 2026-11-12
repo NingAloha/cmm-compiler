@@ -1,8 +1,8 @@
 #ifndef GENERATOR_H
 #define GENERATOR_H
 
-#include "ir.h"
 #include "../frontend/tree.h"
+#include "ir.h"
 
 #include <stdio.h>
 
