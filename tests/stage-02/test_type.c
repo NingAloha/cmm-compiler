@@ -1,7 +1,7 @@
 #include <assert.h>
-#include <stdio.h>
 
 #include "../../src/semantic/type.h"
+#include "../test_util.h"
 
 static void test_shared_types(void) {
   assert(type_int() == type_int());
@@ -57,11 +57,10 @@ static void test_field_operations(void) {
 }
 
 int main(void) {
-  test_shared_types();
-  test_array_type_equality();
-  test_structure_identity();
-  test_field_operations();
+  RUN_TEST(test_shared_types);
+  RUN_TEST(test_array_type_equality);
+  RUN_TEST(test_structure_identity);
+  RUN_TEST(test_field_operations);
 
-  puts("stage-02/type: passed");
-  return 0;
+  TEST_SUMMARY("stage-02/type");
 }

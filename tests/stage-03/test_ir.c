@@ -1,10 +1,11 @@
 #include "../../src/ir/ir.h"
+#include "../test_util.h"
 
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
-int main(void) {
+static void test_emit_and_naming(void) {
   FILE *output = tmpfile();
   assert(output != NULL);
 
@@ -40,5 +41,10 @@ int main(void) {
                         "RETURN #0\n") == 0);
 
   fclose(output);
-  return 0;
+}
+
+int main(void) {
+  RUN_TEST(test_emit_and_naming);
+
+  TEST_SUMMARY("stage-03/ir");
 }

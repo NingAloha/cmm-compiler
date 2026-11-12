@@ -1,7 +1,7 @@
 #include <assert.h>
-#include <stdio.h>
 
 #include "../../src/semantic/symbol.h"
+#include "../test_util.h"
 
 static void test_initialization(void) {
   SymbolTable table;
@@ -130,11 +130,10 @@ static void test_clear(void) {
 }
 
 int main(void) {
-  test_initialization();
-  test_global_symbols();
-  test_nested_scope_shadowing();
-  test_clear();
+  RUN_TEST(test_initialization);
+  RUN_TEST(test_global_symbols);
+  RUN_TEST(test_nested_scope_shadowing);
+  RUN_TEST(test_clear);
 
-  puts("stage-02/symbol: passed");
-  return 0;
+  TEST_SUMMARY("stage-02/symbol");
 }
