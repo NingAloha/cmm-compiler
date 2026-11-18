@@ -5,12 +5,16 @@ tests/stage-01/cases/valid/03-expressions.cmm|0|^Program \(1\)$
 tests/stage-01/cases/valid/04-arrays-and-calls.cmm|0|^Program \(1\)$
 tests/stage-01/cases/valid/05-optional-numbers.cmm|0|^Program \(1\)$
 tests/stage-01/cases/valid/06-comments.cmm|0|^Program \(1\)$
+tests/stage-01/cases/valid/07-comment-only.cmm|0|^Program \(3\)$
+tests/stage-01/cases/valid/08-keyword-prefix-and-relop.cmm|0|^ +RELOP$
 tests/stage-01/cases/invalid/lexical/01-mysterious-character.cmm|0|^Error type A at Line 3:
 tests/stage-01/cases/invalid/lexical/02-invalid-octal.cmm|0|^Error type A at Line 3:
 tests/stage-01/cases/invalid/lexical/03-invalid-hexadecimal.cmm|0|^Error type A at Line 3:
 tests/stage-01/cases/invalid/lexical/04-invalid-exponent.cmm|0|^Error type A at Line 3:
 tests/stage-01/cases/invalid/lexical/05-invalid-fraction.cmm|0|^Error type A at Line 3:
 tests/stage-01/cases/invalid/lexical/06-unterminated-comment.cmm|0|^Error type A at Line 3:
+tests/stage-01/cases/invalid/lexical/07-exponent-without-dot.cmm|0|^Error type A at Line 2:
+tests/stage-01/cases/invalid/lexical/08-multiline-comment-eof.cmm|0|^Error type A at Line 2:
 tests/stage-01/cases/invalid/syntax/01-array-comma.cmm|0|^Error type B at Line 4:
 tests/stage-01/cases/invalid/syntax/02-missing-semi-before-else.cmm|0|^Error type B at Line 4:
 tests/stage-01/cases/invalid/syntax/03-bad-parameter-list.cmm|0|^Error type B at Line 1:

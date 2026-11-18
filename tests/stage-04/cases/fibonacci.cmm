@@ -1,0 +1,15 @@
+int main() {
+    int fibCount, fibIndex, fibA, fibB, fibNext;
+    fibCount = read();
+    fibA = 0;
+    fibB = 1;
+    fibIndex = 0;
+    while (fibIndex < fibCount) {
+        write(fibA);
+        fibNext = fibA + fibB;
+        fibA = fibB;
+        fibB = fibNext;
+        fibIndex = fibIndex + 1;
+    }
+    return 0;
+}

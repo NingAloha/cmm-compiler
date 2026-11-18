@@ -109,17 +109,12 @@ int symbol_table_insert(SymbolTable *table, const char *name, SymbolKind kind,
   new_symbol->line = line;
   new_symbol->next = NULL;
 
-  if (table->head == NULL) {
-    table->head = new_symbol;
-    return 1;
+  Symbol **link = &table->head;
+  while (*link != NULL) {
+    link = &(*link)->next;
   }
 
-  Symbol *tail = table->head;
-  while (tail->next != NULL) {
-    tail = tail->next;
-  }
-
-  tail->next = new_symbol;
+  *link = new_symbol;
   return 1;
 }
 
@@ -132,29 +127,20 @@ void symbol_table_enter_scope(SymbolTable *table) {
 }
 
 void symbol_table_leave_scope(SymbolTable *table) {
-  if (table != NULL && table->scope_depth > 0) {
-    int leaving_depth = table->scope_depth;
-    Symbol *previous = NULL;
-    Symbol *current = table->head;
-
-    while (current != NULL) {
-      if (current->scope_depth == leaving_depth) {
-        Symbol *next = current->next;
-
-        if (previous == NULL) {
-          table->head = next;
-        } else {
-          previous->next = next;
-        }
-
-        symbol_free(current);
-        current = next;
-      } else {
-        previous = current;
-        current = current->next;
-      }
-    }
-
-    table->scope_depth--;
+  if (table == NULL || table->scope_depth <= 0) {
+    return;
   }
+
+  Symbol **link = &table->head;
+  while (*link != NULL) {
+    Symbol *current = *link;
+    if (current->scope_depth == table->scope_depth) {
+      *link = current->next;
+      symbol_free(current);
+    } else {
+      link = &current->next;
+    }
+  }
+
+  table->scope_depth--;
 }

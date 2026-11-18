@@ -1,0 +1,5 @@
+int main() {
+    int integer;
+    integer = 2;
+    return integer >= 1;
+}

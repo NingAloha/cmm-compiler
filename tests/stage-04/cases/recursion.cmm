@@ -1,0 +1,13 @@
+int recursiveFib(int fibN) {
+    if (fibN <= 1) {
+        return fibN;
+    }
+    return recursiveFib(fibN - 1) + recursiveFib(fibN - 2);
+}
+
+int main() {
+    write(recursiveFib(0));
+    write(recursiveFib(1));
+    write(recursiveFib(8));
+    return 0;
+}

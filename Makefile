@@ -8,6 +8,8 @@ ZIP := zip
 OPEN := open
 CLANG_FORMAT := clang-format
 SHFMT := shfmt
+SPIM := spim
+FORMAT_DIRS := src tests
 
 # Compilation
 
@@ -48,11 +50,13 @@ IR_SOURCES := $(IR_CORE_SOURCES) src/ir/generator.c src/ir/gen_array.c \
 DRIVER_SOURCES := src/driver/main.c
 
 COMPILER_SOURCES := $(FRONTEND_SOURCES) $(SEMANTIC_SOURCES) $(IR_SOURCES) \
-	$(DRIVER_SOURCES)
+	src/mips/mips.c $(DRIVER_SOURCES)
 COMPILER_OBJECTS := $(OBJ_DIR)/syntax.tab.o $(call obj_of,$(COMPILER_SOURCES))
 
 # Tests
 
+SANITIZER_FLAGS := -g -fsanitize=address,undefined -fno-omit-frame-pointer \
+	-fno-sanitize-recover=undefined
 TEST_STAGES := 01 02 03
 TEST_TARGETS := $(addprefix test-,$(TEST_STAGES))
 TEST_LIB := tests/lib.sh
@@ -91,7 +95,7 @@ REPORT_PDF := $(COURSEWORK_DIR)/report.pdf
 PACKAGE_DIR := $(BUILD_DIR)/submission
 SUBMIT_ZIP := $(COURSEWORK_DIR)/submit.zip
 
-.PHONY: all clean pack format test report $(TEST_TARGETS) $(REPORT_PDF)
+.PHONY: all clean pack format check-format format-tools test test-sanitize test-04 report $(TEST_TARGETS) $(REPORT_PDF)
 
 all: $(TARGET) $(ROOT_TARGET) $(COURSE_TARGET)
 
@@ -145,6 +149,10 @@ $(IR_TEST): $(IR_TEST_OBJECTS) | $(UNIT_TEST_BIN_DIR)
 
 test: $(TEST_TARGETS)
 
+test-sanitize:
+	$(MAKE) BUILD_DIR=$(BUILD_DIR)/sanitize \
+		CFLAGS="$(CFLAGS) $(SANITIZER_FLAGS)" test
+
 test-01: $(TARGET) $(TEST_SCRIPTS) $(STAGE_01_MANIFEST)
 	@sh $(TEST_RUNNER) $(TARGET) $(STAGE_01_MANIFEST) --tree
 
@@ -160,18 +168,31 @@ test-03: $(IR_TEST) $(TARGET) $(TEST_SCRIPTS) $(STAGE_03_MANIFEST) \
 	@sh $(IR_TEST_RUNNER) $(TARGET) $(STAGE_03_MANIFEST)
 	@sh $(IR_REJECTION_TEST_RUNNER) $(TARGET) $(STAGE_03_REJECTIONS)
 
+test-04: $(COURSE_TARGET) $(ROOT_TARGET)
+	@command -v "$(SPIM)" >/dev/null 2>&1 || { \
+		echo "SPIM not found; set SPIM=/path/to/spim." >&2; exit 1; }
+	@sh tests/stage-04/run.sh ./$(COURSE_TARGET) "$(SPIM)"
+	@sh tests/stage-04/run.sh ./$(ROOT_TARGET) "$(SPIM)"
+
 # Formatting
 
-format:
+format-tools:
 	@command -v $(CLANG_FORMAT) >/dev/null 2>&1 || { \
 		echo "clang-format is not installed. Run: brew install clang-format" >&2; \
 		exit 1; }
 	@command -v $(SHFMT) >/dev/null 2>&1 || { \
 		echo "shfmt is not installed. Run: brew install shfmt" >&2; \
 		exit 1; }
-	find src tests -type f \( -name '*.c' -o -name '*.h' \) -print0 | \
+
+format: format-tools
+	find $(FORMAT_DIRS) -type f \( -name '*.c' -o -name '*.h' \) -print0 | \
 		xargs -0 $(CLANG_FORMAT) -i
 	find tests -type f -name '*.sh' -print0 | xargs -0 $(SHFMT) -i 2 -w
+
+check-format: format-tools
+	find $(FORMAT_DIRS) -type f \( -name '*.c' -o -name '*.h' \) -print0 | \
+		xargs -0 $(CLANG_FORMAT) --dry-run --Werror
+	find tests -type f -name '*.sh' -print0 | xargs -0 $(SHFMT) -i 2 -d
 
 # Course submission
 

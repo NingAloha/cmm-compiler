@@ -35,34 +35,27 @@ int ir_emit(IrContext *context, const char *format, ...) {
   return 1;
 }
 
-int ir_new_temp(IrContext *context, char *buffer, size_t buffer_size) {
-  if (context == NULL || buffer == NULL || buffer_size == 0 ||
-      context->failed) {
+static int ir_new_name(char *buffer, size_t buffer_size, const char *prefix,
+                       unsigned int *next) {
+  if (buffer == NULL || buffer_size == 0) {
     return 0;
   }
 
-  int written = snprintf(buffer, buffer_size, "t%u", context->next_temp);
-
+  int written = snprintf(buffer, buffer_size, "%s%u", prefix, *next);
   if (written < 0 || (size_t)written >= buffer_size) {
     return 0;
   }
 
-  context->next_temp++;
+  ++*next;
   return 1;
 }
 
+int ir_new_temp(IrContext *context, char *buffer, size_t buffer_size) {
+  return context != NULL && !context->failed &&
+         ir_new_name(buffer, buffer_size, "t", &context->next_temp);
+}
+
 int ir_new_label(IrContext *context, char *buffer, size_t buffer_size) {
-  if (context == NULL || buffer == NULL || buffer_size == 0 ||
-      context->failed) {
-    return 0;
-  }
-
-  int written = snprintf(buffer, buffer_size, "label%u", context->next_label);
-
-  if (written < 0 || (size_t)written >= buffer_size) {
-    return 0;
-  }
-
-  context->next_label++;
-  return 1;
+  return context != NULL && !context->failed &&
+         ir_new_name(buffer, buffer_size, "label", &context->next_label);
 }

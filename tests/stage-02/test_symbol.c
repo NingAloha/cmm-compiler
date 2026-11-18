@@ -115,6 +115,36 @@ static void test_nested_scope_shadowing(void) {
   symbol_table_clear(&table);
 }
 
+static void test_scope_exit_preserves_outer_entries(void) {
+  SymbolTable table;
+  symbol_table_init(&table);
+
+  char name[] = "outer";
+  assert(symbol_table_insert(&table, name, SYMBOL_VARIABLE, type_int(), 1));
+  name[0] = 'X';
+  const Symbol *outer = symbol_table_find(&table, "outer");
+  assert(outer != NULL);
+  assert(symbol_table_find(&table, name) == NULL);
+
+  symbol_table_leave_scope(&table);
+  assert(table.scope_depth == 0);
+  assert(symbol_table_find(&table, "outer") == outer);
+
+  symbol_table_enter_scope(&table);
+  assert(symbol_table_insert(&table, "first", SYMBOL_VARIABLE, type_int(), 2));
+  assert(symbol_table_insert(&table, "second", SYMBOL_VARIABLE, type_int(), 3));
+  symbol_table_leave_scope(&table);
+
+  assert(table.scope_depth == 0);
+  assert(symbol_table_find(&table, "outer") == outer);
+  assert(symbol_table_find(&table, "first") == NULL);
+  assert(symbol_table_find(&table, "second") == NULL);
+  assert(symbol_table_insert(&table, "first", SYMBOL_VARIABLE, type_int(), 4));
+  assert(outer->next == symbol_table_find_current(&table, "first"));
+
+  symbol_table_clear(&table);
+}
+
 static void test_clear(void) {
   SymbolTable table;
   symbol_table_init(&table);
@@ -133,6 +163,7 @@ int main(void) {
   RUN_TEST(test_initialization);
   RUN_TEST(test_global_symbols);
   RUN_TEST(test_nested_scope_shadowing);
+  RUN_TEST(test_scope_exit_preserves_outer_entries);
   RUN_TEST(test_clear);
 
   TEST_SUMMARY("stage-02/symbol");

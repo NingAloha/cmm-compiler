@@ -1,10 +1,10 @@
 %{
 #include <stdio.h>
+#include "lexer.h"
 #include "tree.h"
 
 int yylex(void);
 extern int yylineno;
-extern int lexical_error;
 int syntax_error = 0;
 void yyerror(const char *message);
 TreeNode *syntax_tree_root;
@@ -511,6 +511,7 @@ Args:
 void yyerror(const char *message) {
     (void)message;
 
+    /* Once a lexical error is seen, suppress subsequent B diagnostics. */
     if (lexical_error) {
         return;
     }

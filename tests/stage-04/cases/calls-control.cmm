@@ -1,0 +1,34 @@
+int packArgs(int argA, int argB, int argC, int argD, int argE, int argF) {
+    return argA * 100000 + argB * 10000 + argC * 1000
+         + argD * 100 + argE * 10 + argF;
+}
+
+int bump(int bumpValue) {
+    return bumpValue + 1;
+}
+
+int unexpectedCall() {
+    write(999);
+    return 1;
+}
+
+int main() {
+    int callIndex, callValue;
+    callIndex = 0;
+    while (callIndex < 3) {
+        if (callIndex == 0 || (callIndex == 1 && callIndex < 2)) {
+            callValue = packArgs(bump(callIndex), 3, 4, bump(bump(3)), 6, 7);
+        } else {
+            callValue = packArgs(7, 6, 5, 4, 3, 2);
+        }
+        write(callValue);
+        callIndex = bump(callIndex);
+    }
+    if (callIndex == 3 || unexpectedCall()) {
+        write(-3);
+    }
+    if (callIndex < 0 && unexpectedCall()) {
+        write(888);
+    }
+    return 0;
+}

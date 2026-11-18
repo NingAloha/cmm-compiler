@@ -131,9 +131,9 @@ DEC_INT [0-9]+
     return 0;
 }
 
-">=" { return make_token(RELOP, "RELOP", yytext); }
-"<=" { return make_token(RELOP, "RELOP", yytext); }
-"==" { return make_token(RELOP, "RELOP", yytext); }
+">=" |
+"<=" |
+"==" |
 "!=" { return make_token(RELOP, "RELOP", yytext); }
 
 "&&" { return make_token(AND, "AND", ""); }
@@ -155,25 +155,13 @@ DEC_INT [0-9]+
 "." { return make_token(DOT, "DOT", ""); }
 "!" { return make_token(NOT, "NOT", ""); }
 
-">"  { return make_token(RELOP, "RELOP", yytext); }
+">"  |
 "<"  { return make_token(RELOP, "RELOP", yytext); }
 
-{BAD_FLOAT_DOTS} {
-    report_illegal_floating_point_number(yytext);
-}
-
-{BAD_EXPONENT} {
-    report_illegal_floating_point_number(yytext);
-}
-
-{BAD_NO_DOT_EXP} {
-    report_illegal_floating_point_number(yytext);
-}
-
-{BAD_LEADING_DOT} {
-    report_illegal_floating_point_number(yytext);
-}
-
+{BAD_FLOAT_DOTS} |
+{BAD_EXPONENT} |
+{BAD_NO_DOT_EXP} |
+{BAD_LEADING_DOT} |
 {BAD_TRAILING_DOT} {
     report_illegal_floating_point_number(yytext);
 }

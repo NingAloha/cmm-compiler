@@ -1,0 +1,18 @@
+int main() {
+    int slots[5], slotIndex, slotSum;
+    slotIndex = 0;
+    while (slotIndex < 5) {
+        slots[slotIndex] = slotIndex * slotIndex - 3;
+        slotIndex = slotIndex + 1;
+    }
+    slots[2] = slots[4] - slots[0];
+    slotIndex = 4;
+    slotSum = 0;
+    while (slotIndex >= 0) {
+        write(slots[slotIndex]);
+        slotSum = slotSum + slots[slotIndex];
+        slotIndex = slotIndex - 1;
+    }
+    write(slotSum);
+    return 0;
+}

@@ -39,6 +39,12 @@ const IrVariable *variable_find(const IrGenerator *generator,
   return NULL;
 }
 
+static void variable_free(IrVariable *variable) {
+  free(variable->source_name);
+  free(variable->dimensions);
+  free(variable);
+}
+
 int variable_declare(IrGenerator *generator, const char *source_name,
                      const ArrayShape *shape, int is_array_parameter,
                      char *result, size_t result_size) {
@@ -54,7 +60,7 @@ int variable_declare(IrGenerator *generator, const char *source_name,
   size_t name_length = strlen(source_name);
   variable->source_name = malloc(name_length + 1);
   if (variable->source_name == NULL) {
-    free(variable);
+    variable_free(variable);
     return generator_fail(generator);
   }
   memcpy(variable->source_name, source_name, name_length + 1);
@@ -63,8 +69,7 @@ int variable_declare(IrGenerator *generator, const char *source_name,
     variable->dimensions =
         malloc(shape->dimension_count * sizeof(*variable->dimensions));
     if (variable->dimensions == NULL) {
-      free(variable->source_name);
-      free(variable);
+      variable_free(variable);
       return generator_fail(generator);
     }
     memcpy(variable->dimensions, shape->dimensions,
@@ -77,9 +82,7 @@ int variable_declare(IrGenerator *generator, const char *source_name,
                          generator->next_variable);
   if (written < 0 || (size_t)written >= sizeof(variable->ir_name) ||
       !set_operand(generator, result, result_size, variable->ir_name)) {
-    free(variable->source_name);
-    free(variable->dimensions);
-    free(variable);
+    variable_free(variable);
     return generator_fail(generator);
   }
 
@@ -108,9 +111,7 @@ void ir_generator_clear(IrGenerator *generator) {
   IrVariable *variable = generator->variables;
   while (variable != NULL) {
     IrVariable *next = variable->next;
-    free(variable->source_name);
-    free(variable->dimensions);
-    free(variable);
+    variable_free(variable);
     variable = next;
   }
   generator->variables = NULL;

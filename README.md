@@ -4,7 +4,7 @@
 
 ## 当前能力
 
-**Stage 02：已完成类型系统、符号表和错误类型 1--17 的语义检查，并已接入解析器；符号表还支持选做 2.2 的嵌套作用域。**
+已实现 Stage 01–04：语法树输出、错误类型 1–17 的语义检查、文本 IR 生成，以及面向 SPIM 的 MIPS32 汇编生成。
 
 默认调用 `parser` 执行实验二语义检查：正确程序不输出，错误程序只输出对应的 `Error type` 信息。传入 `--tree` 时保留实验一行为，按先序遍历打印语法树。
 
@@ -32,39 +32,47 @@ make
 ```bash
 ./parser path/to/source.cmm
 ./parser --tree path/to/source.cmm
+./parser --ir path/to/source.cmm output.ir
+./cc path/to/source.cmm output.s
+spim -file output.s
 ```
 
-默认模式执行语义分析；`--tree` 模式按先序遍历输出实验一语法树。
+默认模式执行语义分析；`--tree` 输出语法树；`--ir` 将中间代码写入指定文件。`./cc` 的两个位置参数生成汇编。使用 `./parser` 时，输出名以 `.s` 结尾则生成汇编，否则仍生成文本 IR；`--ir` 始终生成文本 IR。
 
 ### 测试
 
 ```bash
 make test-01  # 实验一：词法、语法与语法树测试
 make test-02  # 实验二：类型、符号表与语义检查测试
-make test     # 运行全部阶段测试
+make test-03  # 实验三：IR 单测、输出比较和拒绝用例
+make test     # 运行 Stage 01–03，不需要 SPIM
+make test-04  # 使用 SPIM 执行生成的汇编
+make test-sanitize  # 使用 ASan 和 UBSan 运行同一套测试
+make check-format   # 检查格式，不修改文件
 ```
 
 各目标的职责如下：
 
-| 命令 | 测试范围 | 说明 |
-| --- | --- | --- |
-| `make test-01` | Stage 01 样例 | 词法、语法与语法树输出 |
+| 命令           | 测试范围                | 说明                   |
+| -------------- | ----------------------- | ---------------------- |
+| `make test-01` | Stage 01 样例           | 词法、语法与语法树输出 |
 | `make test-02` | Stage 02 单元测试与样例 | 类型、符号表与语义检查 |
-| `make test` | 全部测试 | 依次运行两个阶段 |
+| `make test-03` | Stage 03 单元测试与样例 | IR 输出和不支持的输入  |
+| `make test`    | 全部测试                | 运行 Stage 01–03       |
 
-样例路径与判定规则见[实验一测试说明](tests/stage-01/README.md)和[实验二测试说明](tests/stage-02/README.md)。
+新增用例、格式检查和 sanitizer 的操作步骤见[开发与测试指南](docs/development.md)。
 
 ## 模块说明
 
-| 模块 | 主要职责 | 说明文档 |
-| --- | --- | --- |
-| `src/frontend/lexer.l` | 将字符流转换为 token，处理数值、注释与词法错误 | [词法分析器](docs/stage-01/lexer.md) |
-| `src/frontend/syntax.y` | 按文法归约、处理优先级和语法错误恢复 | [语法分析器](docs/stage-01/syntax.md) |
-| `src/frontend/tree.c`、`tree.h` | 创建、连接、打印和释放语法树 | [语法树](docs/stage-01/tree.md) |
-| `src/driver/main.c` | 打开输入文件、驱动解析并决定输出与退出码 | [语法分析器中的流程说明](docs/stage-01/syntax.md#1-token-的语义值是树结点) |
-| `src/semantic/type.c`、`type.h` | 表示基础类型、数组、结构体和函数类型，并判断类型等价 | [类型系统](docs/stage-02/type.md) |
-| `src/semantic/symbol.c`、`symbol.h` | 维护变量、函数和结构体符号，支持嵌套作用域 | [符号表](docs/stage-02/symbol.md) |
-| `src/semantic/semantic.c`、`semantic.h` | 遍历 AST、进行类型检查并输出错误类型 1--17 | [语义分析](docs/stage-02/semantic.md) |
-| `tests/run_tests.sh` | 执行清单中的端到端样例，并校验退出码与输出 | [测试说明](tests/stage-02/README.md) |
-| `tests/stage-01/` | 保存实验一样例、清单与说明 | [实验一测试](tests/stage-01/README.md) |
-| `tests/stage-02/` | 运行类型、符号表和端到端语义回归测试 | [实验二测试](tests/stage-02/README.md) |
+| 模块                                    | 主要职责                                             | 说明文档                                                                   |
+| --------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------- |
+| `src/frontend/lexer.l`                  | 将字符流转换为 token，处理数值、注释与词法错误       | [词法分析器](docs/stage-01/lexer.md)                                       |
+| `src/frontend/syntax.y`                 | 按文法归约、处理优先级和语法错误恢复                 | [语法分析器](docs/stage-01/syntax.md)                                      |
+| `src/frontend/tree.c`、`tree.h`         | 创建、连接、打印和释放语法树                         | [语法树](docs/stage-01/tree.md)                                            |
+| `src/driver/main.c`                     | 打开输入文件、驱动解析并决定输出与退出码             | [语法分析器中的流程说明](docs/stage-01/syntax.md#1-token-的语义值是树结点) |
+| `src/semantic/type.c`、`type.h`         | 表示基础类型、数组、结构体和函数类型，并判断类型等价 | [类型系统](docs/stage-02/type.md)                                          |
+| `src/semantic/symbol.c`、`symbol.h`     | 维护变量、函数和结构体符号，支持嵌套作用域           | [符号表](docs/stage-02/symbol.md)                                          |
+| `src/semantic/semantic.c`、`semantic.h` | 遍历 AST、进行类型检查并输出错误类型 1--17           | [语义分析](docs/stage-02/semantic.md)                                      |
+| `tests/run_tests.sh`                    | 执行清单中的端到端样例，并校验退出码与输出           | [测试说明](tests/stage-02/README.md)                                       |
+| `tests/stage-01/`                       | 保存实验一样例、清单与说明                           | [实验一测试](tests/stage-01/README.md)                                     |
+| `tests/stage-02/`                       | 运行类型、符号表和端到端语义回归测试                 | [实验二测试](tests/stage-02/README.md)                                     |
